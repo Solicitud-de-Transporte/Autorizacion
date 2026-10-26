@@ -191,9 +191,6 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="toast" id="toast"></div>
 <script>
 var NL=String.fromCharCode(10);
-/* 📌 escrito como secuencia de escape Unicode (puro ASCII en el archivo).
-   Inmune a cualquier problema de codificación al guardar el .html.
-   U+1F4CC = PUSHPIN  →  par sustituto UTF-16: D83D DCCC */
 var PIN='\uD83D\uDCCC';
 var manifest={name:"Insopesca El Morro",short_name:"Insopesca",start_url:".",display:"standalone",background_color:"#0d3b66",theme_color:"#0d3b66",icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"512x512",type:"image/svg+xml"}]};
 document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
@@ -207,7 +204,8 @@ function setHistory(h){localStorage.setItem(DB_KEY,JSON.stringify(h));updateBadg
 function updateBadges(){var n=getHistory().length;document.getElementById('navBadge').textContent=n;document.getElementById('histCountBadge').textContent=n;}
 function $(id){return document.getElementById(id);}
 function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show')},2600);}
-function todayStr(){var d=new Date();return d.toLocaleDateString('es-VE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+/* ⬇️ ÚNICO CAMBIO: ahora devuelve dd/mm/aaaa */
+function todayStr(){var d=new Date();var dd=('0'+d.getDate()).slice(-2);var mm=('0'+(d.getMonth()+1)).slice(-2);return dd+'/'+mm+'/'+d.getFullYear();}
 function fmtDate(iso){if(!iso)return'';var d=new Date(iso.length===10?iso+'T00:00:00':iso);return d.toLocaleDateString('es-VE');}
 function formatCI(v){v=v.replace(/\D/g,'');return v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
 function bindCIFormat(inputId,prefixId){var inp=$(inputId),pre=$(prefixId);
@@ -252,7 +250,6 @@ function saveToHistory(){if(!validateForm())return;var data=collectForm();var h=
 function clearForm(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha')i.value='';});$('f_sardina').value='';$('cgtAlert').className='cgt-alert';$('placaHint').style.display='none';toast('🧹 Formulario limpio');}
 function buildMessage(d){
 var L=[['*Solicitud de Autorización*',''],['Fecha',d.fecha],['Placa',d.placa],['Cajas',d.cajas],['Sardina',d.sardina],['Propietario',d.propietario],['C.I.',d.ciPropietario],['Chofer',d.chofer],['C.I.',d.ciChofer],['CGT',d.cgt],['Vence CGT',fmtDate(d.venceCgt)],['Marca',d.marca],['Destino',d.destino],['Estado',d.estado],['Municipio',d.municipio],['Parroquia',d.parroquia],['Recibe',d.recibe],['Teléfono',d.telefono],['Origen',d.origen],['Productor',d.productor]];
-/* Sólo agregar Observación si tiene contenido */
 if(d.observacion && d.observacion.trim()){L.push(['Observación',d.observacion]);}
 var m='';
 for(var i=0;i<L.length;i++){
