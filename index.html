@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d3b66">
+<meta name="description" content="Solicitud de Autorización - Insopesca El Morro">
+<title>Solicitud de Autorización | Insopesca El Morro</title>
+<link rel="manifest" id="manifestLink">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d3b66'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>🐟</text></svg>">
+<style>
+:root{--primary:#0d3b66;--primary-light:#14538f;--accent:#1b9aaa;--accent-dark:#137f8c;--danger:#c0392b;--success:#27ae60;--warning:#e67e22;--bg:#f0f4f8;--card:#fff;--text:#1a2b3c;--text-light:#5a6b7c;--border:#d5dee8;--radius:14px;--shadow-lg:0 10px 40px rgba(13,59,102,.18)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
+.container{max-width:680px;margin:0 auto;padding:0 16px}
+header{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:24px 16px 70px;position:relative;overflow:hidden}
+.header-content{max-width:680px;margin:0 auto;position:relative;z-index:1}
+.logo-row{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.logo-icon{font-size:44px}
+h1{font-size:1.45rem;font-weight:700}
+.subtitle{font-size:.82rem;opacity:.85;margin-top:2px}
+.author-badge{display:inline-block;margin-top:10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:20px;font-size:.72rem}
+.tabs{display:flex;gap:8px;margin-top:18px}
+.tab{flex:1;padding:11px 8px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
+.tab.active{background:#fff;color:var(--primary)}
+main{margin-top:-46px;position:relative;z-index:3}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px 20px;margin-bottom:20px}
+.card-title{font-size:1.05rem;font-weight:700;color:var(--primary);margin-bottom:4px}
+.card-sub{font-size:.8rem;color:var(--text-light);margin-bottom:18px}
+.section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:5px}
+.field label .req{color:var(--danger)}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:.95rem;font-family:inherit;color:var(--text);background:#fbfcfe;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,154,170,.15);background:#fff}
+.field textarea{resize:vertical;min-height:70px}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6b7c' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.field .hint{font-size:.72rem;color:var(--text-light);margin-top:4px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:end}
+.id-prefix{width:100px}
+@media(max-width:420px){.grid-2{grid-template-columns:1fr}}
+.cgt-alert{display:none;margin-top:6px;padding:9px 12px;border-radius:8px;font-size:.8rem;font-weight:600;align-items:center;gap:8px}
+.cgt-alert.show{display:flex}
+.cgt-alert.expired{background:#fdecea;color:var(--danger);border:1px solid #f5b7b1}
+.cgt-alert.warning{background:#fef5e7;color:var(--warning);border:1px solid #f8c471}
+.cgt-alert.ok{background:#eafaf1;color:var(--success);border:1px solid #a9dfbf}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border:none;border-radius:11px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff}
+.btn-whatsapp{background:linear-gradient(135deg,#25d366,#1da851);color:#fff}
+.btn-secondary{background:#eef2f7;color:var(--primary);border:1.5px solid var(--border)}
+.btn-sm{padding:8px 14px;font-size:.8rem;width:auto;border-radius:9px}
+.btn-row{display:flex;gap:10px;margin-top:8px}
+.btn-row .btn{flex:1}
+.filter-tabs{display:flex;gap:6px;margin-bottom:10px}
+.filter-tab{flex:1;padding:9px 6px;border:1.5px solid var(--border);border-radius:9px;background:#fff;font-size:.78rem;font-weight:600;color:var(--text-light);cursor:pointer;font-family:inherit}
+.filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.search-box{position:relative}
+.search-box input{padding-left:38px}
+.search-box .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.5}
+.results-count{font-size:.78rem;color:var(--text-light);margin:10px 0 12px;font-weight:600}
+.history-item{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.history-item:hover{border-color:var(--accent)}
+.history-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.history-plate{font-size:1.15rem;font-weight:800;color:var(--primary);letter-spacing:1px}
+.history-date{font-size:.72rem;color:var(--text-light);background:#eef2f7;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.history-meta{font-size:.8rem;color:var(--text-light);line-height:1.6;margin-bottom:12px}
+.history-meta strong{color:var(--text)}
+.history-actions{display:flex;gap:8px;flex-wrap:wrap}
+.hbtn{flex:1;min-width:70px;padding:8px 4px;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit}
+.hbtn-view{background:#eef2f7;color:var(--primary)}
+.hbtn-edit{background:#e8f4f8;color:var(--accent-dark)}
+.hbtn-new{background:#eafaf1;color:var(--success)}
+.hbtn-del{background:#fdecea;color:var(--danger)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-light)}
+.empty-state .big{font-size:3rem;margin-bottom:10px;opacity:.4}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,25,40,.6);z-index:100;padding:16px;overflow-y:auto}
+.modal-overlay.show{display:flex;align-items:flex-start;justify-content:center}
+.modal{background:#fff;border-radius:16px;max-width:620px;width:100%;margin:30px auto;padding:24px 20px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title{font-size:1.1rem;font-weight:800;color:var(--primary)}
+.modal-close{background:#eef2f7;border:none;width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.detail-item{background:#f7fafc;border-radius:9px;padding:10px 12px}
+.detail-item.full{grid-column:1/-1}
+.detail-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:3px}
+.detail-value{font-size:.88rem;font-weight:600;word-break:break-word}
+@media(max-width:480px){.detail-grid{grid-template-columns:1fr}}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:12px 22px;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;white-space:nowrap}
+.toast.show{opacity:1}
+.install-banner{display:none;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-radius:12px;padding:14px 16px;margin-bottom:16px;align-items:center;gap:12px}
+.install-banner.show{display:flex}
+.install-banner .txt{flex:1;font-size:.83rem;font-weight:600}
+.install-banner button{background:#fff;color:var(--accent-dark);border:none;padding:8px 16px;border-radius:20px;font-weight:700;font-size:.8rem;cursor:pointer;font-family:inherit}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;font-weight:700;color:var(--text-light);cursor:pointer;border:none;background:none;font-family:inherit;position:relative}
+.nav-item.active{color:var(--primary)}
+.nav-item .nav-ico{font-size:1.25rem}
+.nav-badge{position:absolute;top:4px;right:calc(50% - 24px);background:var(--danger);color:#fff;font-size:.6rem;font-weight:800;min-width:17px;height:17px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.hidden{display:none!important}
+.footer-note{text-align:center;font-size:.7rem;color:var(--text-light);margin-top:24px;line-height:1.7}
+</style>
+</head>
+<body>
+<header><div class="header-content">
+<div class="logo-row"><div class="logo-icon">🐟</div><div><h1>Insopesca El Morro</h1><div class="subtitle">Sistema de Solicitud de Autorización de Transporte</div></div></div>
+<span class="author-badge">© Emmanuel Manosalva</span>
+<div class="tabs">
+<button class="tab active" id="tabForm" onclick="switchView('form')">📝 Nueva Solicitud</button>
+<button class="tab" id="tabHistory" onclick="switchView('history')">📋 Historial <span id="histCountBadge" style="background:#c0392b;color:#fff;font-size:.65rem;padding:1px 7px;border-radius:10px;margin-left:4px">0</span></button>
+</div></div></header>
+<main class="container">
+<div class="install-banner" id="installBanner"><span style="font-size:1.4rem">📲</span><div class="txt">Instala la app en tu dispositivo</div><button onclick="installApp()">Instalar</button></div>
+<div id="viewForm"><div class="card">
+<div class="card-title">📋 Solicitud de Autorización</div>
+<div class="card-sub">Complete los datos. Los campos con <span style="color:#c0392b">*</span> son obligatorios.</div>
+<form id="authForm" autocomplete="off" onsubmit="return false">
+<div class="form-section"><div class="section-label">🗓️ Fecha</div>
+<div class="grid-2">
+<div class="field"><label>📌 Fecha <span class="req">*</span></label><input type="text" id="f_fecha" readonly style="background:#eef2f7;font-weight:700;color:var(--primary)"></div>
+<div class="field"><label>📌 Placa <span class="req">*</span></label><input type="text" id="f_placa" placeholder="Ej: AB123CD" maxlength="10" style="text-transform:uppercase;font-weight:700" required><div class="hint" id="placaHint" style="display:none;color:var(--accent);font-weight:600">✓ Datos cargados desde historial</div></div>
+</div></div>
+<div class="form-section"><div class="section-label">🚛 Vehículo y Carga</div>
+<div class="grid-2">
+<div class="field"><label>📌 Cajas <span class="req">*</span></label><input type="number" id="f_cajas" placeholder="Cantidad" min="0" required></div>
+<div class="field"><label>📌 Sardina <span class="req">*</span></label><select id="f_sardina" required><option value="">Seleccionar…</option><option value="Entera">🐟 Entera</option><option value="Picada">🔪 Picada</option></select></div>
+</div>
+<div class="grid-2">
+<div class="field"><label>📌 Marca</label><input type="text" id="f_marca" placeholder="Ej: Ford, Chevrolet"></div>
+<div class="field"><label>📌 CGT <span class="req">*</span></label><input type="text" id="f_cgt" placeholder="N° de CGT" required></div>
+</div>
+<div class="field"><label>📌 Vence CGT <span class="req">*</span></label><input type="date" id="f_vence" required><div class="cgt-alert" id="cgtAlert"></div></div>
+</div>
+<div class="form-section"><div class="section-label">👤 Propietario</div>
+<div class="field"><label>📌 Propietario <span class="req">*</span></label><input type="text" id="f_propietario" placeholder="Nombre completo" required></div>
+<div class="field"><label>📌 C.I. / RIF del Propietario <span class="req">*</span></label>
+<div class="grid-3"><select id="f_ciPropPrefijo" class="id-prefix"><option value="V-">V-</option><option value="E-">E-</option><option value="J-">J- (RIF)</option></select>
+<input type="text" id="f_ciPropietario" placeholder="Ej: 12.345.678" inputmode="numeric" required></div>
+<div class="hint" id="ciPropHint">Cédula: con puntos de mil · RIF (J-): sin separación</div></div></div>
+<div class="form-section"><div class="section-label">🧑‍✈️ Chofer</div>
+<div class="field"><label>📌 Chofer <span class="req">*</span></label><input type="text" id="f_chofer" placeholder="Nombre completo" required></div>
+<div class="field"><label>📌 C.I. del Chofer <span class="req">*</span></label>
+<div class="grid-3"><select id="f_ciChofPrefijo" class="id-prefix"><option value="V-">V-</option><option value="E-">E-</option></select>
+<input type="text" id="f_ciChofer" placeholder="Ej: 12.345.678" inputmode="numeric" required></div></div></div>
+<div class="form-section"><div class="section-label">🗺️ Ruta y Origen</div>
+<div class="field"><label>📌 Estado</label><input type="text" id="f_estado" placeholder="Ej: Sucre"></div>
+<div class="grid-2">
+<div class="field"><label>📌 Municipio</label><input type="text" id="f_municipio" placeholder="Ej: Arismendi"></div>
+<div class="field"><label>📌 Parroquia</label><input type="text" id="f_parroquia" placeholder="Ej: El Morro"></div>
+</div>
+<div class="grid-2">
+<div class="field"><label>📌 Recibe</label><input type="text" id="f_recibe" placeholder="Nombre de quien recibe la carga"></div>
+<div class="field"><label>📌 Teléfono</label><input type="tel" id="f_telefono" placeholder="Ej: 04125634731" inputmode="tel"></div>
+</div>
+<div class="field"><label>📌 Destino <span class="req">*</span></label><input type="text" id="f_destino" placeholder="Empresa y ciudad (Ej: Buenaventura, Puerto Santo)" required></div>
+<div class="field"><label>📌 Origen <span class="req">*</span></label><input type="text" id="f_origen" placeholder="Puerto de carga (Ej: El Morro)" required></div>
+<div class="field"><label>📌 Productor <span class="req">*</span></label><input type="text" id="f_productor" placeholder="Máquina, empresa o picadora que cargó" required></div>
+</div>
+<div class="form-section"><div class="section-label">📝 Observación</div>
+<div class="field"><textarea id="f_observacion" placeholder="Observaciones adicionales (opcional)"></textarea></div></div>
+<div class="btn-row">
+<button type="button" class="btn btn-secondary" onclick="clearForm()">🧹 Limpiar</button>
+<button type="button" class="btn btn-primary" onclick="saveToHistory()">💾 Guardar</button>
+</div>
+<div style="margin-top:10px"><button type="button" class="btn btn-whatsapp" onclick="sendWhatsApp()">📱 Enviar por WhatsApp</button></div>
+</form></div></div>
+<div id="viewHistory" class="hidden"><div class="card">
+<div class="card-title">📚 Historial de Solicitudes</div>
+<div class="card-sub">Busque por <strong>una sola</strong> opción: placa, destino o chofer.</div>
+<div class="filter-group">
+<div class="filter-tabs">
+<button class="filter-tab active" data-f="placa" onclick="setFilter('placa')">🚗 Placa</button>
+<button class="filter-tab" data-f="destino" onclick="setFilter('destino')">📍 Destino</button>
+<button class="filter-tab" data-f="chofer" onclick="setFilter('chofer')">🧑‍✈️ Chofer</button>
+</div>
+<div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Buscar por placa…" oninput="renderHistory()"></div>
+</div>
+<div class="results-count" id="resultsCount"></div>
+<div id="historyList"></div>
+</div></div>
+<div class="footer-note"><strong>Insopesca El Morro</strong> · Datos almacenados localmente en este dispositivo.<br>© 2026 Emmanuel Manosalva · Todos los derechos reservados</div>
+</main>
+<nav class="bottom-nav">
+<button class="nav-item active" id="navForm" onclick="switchView('form')"><span class="nav-ico">📝</span>Nueva</button>
+<button class="nav-item" id="navHistory" onclick="switchView('history')"><span class="nav-ico">📋</span>Historial<span class="nav-badge" id="navBadge">0</span></button>
+</nav>
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()"><div class="modal">
+<div class="modal-header"><div class="modal-title" id="modalTitle">Detalle</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+<div id="modalBody"></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+var NL=String.fromCharCode(10);
+/* 📌 escrito como secuencia de escape Unicode (puro ASCII en el archivo).
+   Inmune a cualquier problema de codificación al guardar el .html.
+   U+1F4CC = PUSHPIN  →  par sustituto UTF-16: D83D DCCC */
+var PIN='\uD83D\uDCCC';
+var manifest={name:"Insopesca El Morro",short_name:"Insopesca",start_url:".",display:"standalone",background_color:"#0d3b66",theme_color:"#0d3b66",icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"512x512",type:"image/svg+xml"}]};
+document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
+if('serviceWorker' in navigator){var sw="self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(function(){});}
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show');});
+function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;document.getElementById('installBanner').classList.remove('show');}}
+var DB_KEY='insopesca_history_v1';
+function getHistory(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[]}catch(e){return[]}}
+function setHistory(h){localStorage.setItem(DB_KEY,JSON.stringify(h));updateBadges();}
+function updateBadges(){var n=getHistory().length;document.getElementById('navBadge').textContent=n;document.getElementById('histCountBadge').textContent=n;}
+function $(id){return document.getElementById(id);}
+function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show')},2600);}
+function todayStr(){var d=new Date();return d.toLocaleDateString('es-VE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+function fmtDate(iso){if(!iso)return'';var d=new Date(iso.length===10?iso+'T00:00:00':iso);return d.toLocaleDateString('es-VE');}
+function formatCI(v){v=v.replace(/\D/g,'');return v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function bindCIFormat(inputId,prefixId){var inp=$(inputId),pre=$(prefixId);
+inp.addEventListener('input',function(){var raw=inp.value.replace(/\D/g,'');inp.value=pre.value==='J-'?raw:formatCI(raw);});
+pre.addEventListener('change',function(){var raw=inp.value.replace(/\D/g,'');inp.value=pre.value==='J-'?raw:formatCI(raw);if(prefixId==='f_ciPropPrefijo'){$('ciPropHint').textContent=pre.value==='J-'?'RIF: sin separación de miles':'Cédula: con puntos de mil';}});}
+bindCIFormat('f_ciPropietario','f_ciPropPrefijo');
+bindCIFormat('f_ciChofer','f_ciChofPrefijo');
+$('f_placa').addEventListener('input',function(e){e.target.value=e.target.value.toUpperCase();});
+$('f_vence').addEventListener('change',checkCGT);
+function checkCGT(){var v=$('f_vence').value,alert=$('cgtAlert');if(!v){alert.className='cgt-alert';return;}
+var today=new Date();today.setHours(0,0,0,0);var exp=new Date(v+'T00:00:00');var diff=Math.ceil((exp-today)/(86400000));
+alert.className='cgt-alert show';
+if(diff<0){alert.classList.add('expired');alert.innerHTML='⚠️ <span>CGT VENCIDO hace '+Math.abs(diff)+' día'+(Math.abs(diff)>1?'s':'')+'. Puede continuar, pero verifique el documento.</span>';}
+else if(diff<=30){alert.classList.add('warning');alert.innerHTML='⏳ <span>CGT vence en '+diff+' día'+(diff>1?'s':'')+'. Considere renovarlo pronto.</span>';}
+else{alert.classList.add('ok');alert.innerHTML='✅ <span>CGT vigente.</span>';}}
+$('f_placa').addEventListener('input',function(){var val=this.value.trim().toUpperCase();var hint=$('placaHint');
+if(val.length<3){hint.style.display='none';return;}
+var match=getHistory().find(function(h){return h.placa===val;});
+if(match){fillForm(match);hint.style.display='block';toast('✓ Datos cargados de: '+val);}else{hint.style.display='none';}});
+function fillForm(d){
+$('f_cajas').value=d.cajas||'';$('f_sardina').value=d.sardina||'';$('f_propietario').value=d.propietario||'';
+setCI('f_ciPropPrefijo','f_ciPropietario',d.ciPropietario||'');
+$('f_chofer').value=d.chofer||'';
+setCI('f_ciChofPrefijo','f_ciChofer',d.ciChofer||'');
+$('f_cgt').value=d.cgt||'';$('f_vence').value=d.venceCgt||'';checkCGT();
+$('f_marca').value=d.marca||'';$('f_destino').value=d.destino||'';$('f_estado').value=d.estado||'';
+$('f_municipio').value=d.municipio||'';$('f_parroquia').value=d.parroquia||'';
+$('f_recibe').value=d.recibe||'';$('f_telefono').value=d.telefono||'';
+$('f_origen').value=d.origen||'';
+$('f_productor').value=d.productor||'';$('f_observacion').value=d.observacion||'';}
+function setCI(prefixId,inputId,full){var pre=$(prefixId),inp=$(inputId);var p='V-',num=full||'';
+if(num.indexOf('J-')===0){p='J-';num=num.slice(2);}else if(num.indexOf('E-')===0){p='E-';num=num.slice(2);}else if(num.indexOf('V-')===0){p='V-';num=num.slice(2);}
+pre.value=p;var raw=num.replace(/\D/g,'');inp.value=p==='J-'?raw:formatCI(raw);}
+function collectForm(){return{fecha:todayStr(),placa:$('f_placa').value.trim().toUpperCase(),cajas:$('f_cajas').value.trim(),sardina:$('f_sardina').value,propietario:$('f_propietario').value.trim(),ciPropietario:$('f_ciPropPrefijo').value+$('f_ciPropietario').value.trim(),chofer:$('f_chofer').value.trim(),ciChofer:$('f_ciChofPrefijo').value+$('f_ciChofer').value.trim(),cgt:$('f_cgt').value.trim(),venceCgt:$('f_vence').value,marca:$('f_marca').value.trim(),destino:$('f_destino').value.trim(),estado:$('f_estado').value.trim(),municipio:$('f_municipio').value.trim(),parroquia:$('f_parroquia').value.trim(),recibe:$('f_recibe').value.trim(),telefono:$('f_telefono').value.trim(),origen:$('f_origen').value.trim(),productor:$('f_productor').value.trim(),observacion:$('f_observacion').value.trim()};}
+function validateForm(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_sardina','el tipo de sardina'],['f_propietario','el propietario'],['f_ciPropietario','la C.I. del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el CGT'],['f_vence','el vencimiento del CGT'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
+for(var i=0;i<req.length;i++){var id=req[i][0];if(!$(id).value.trim()){toast('⚠️ Falta '+req[i][1]);$(id).focus();$(id).style.borderColor='#c0392b';setTimeout(function(el){el.style.borderColor='';}.bind(null,$(id)),2000);return false;}}
+return true;}
+function validateForWhatsApp(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_sardina','el tipo de sardina'],['f_marca','la marca'],['f_propietario','el propietario'],['f_ciPropietario','la C.I./RIF del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el N° de CGT'],['f_vence','el vencimiento del CGT'],['f_estado','el estado'],['f_municipio','el municipio'],['f_parroquia','la parroquia'],['f_recibe','el nombre de quien recibe'],['f_telefono','el teléfono de quien recibe'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
+for(var i=0;i<req.length;i++){var id=req[i][0];if(!$(id).value.trim()){toast('⚠️ Falta '+req[i][1]+' para enviar por WhatsApp');$(id).focus();$(id).style.borderColor='#c0392b';setTimeout(function(el){el.style.borderColor='';}.bind(null,$(id)),2500);return false;}}
+return true;}
+function saveToHistory(){if(!validateForm())return;var data=collectForm();var h=getHistory();h.unshift(Object.assign({},data,{id:Date.now(),savedAt:new Date().toISOString()}));setHistory(h);toast('💾 Guardado en historial');}
+function clearForm(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha')i.value='';});$('f_sardina').value='';$('cgtAlert').className='cgt-alert';$('placaHint').style.display='none';toast('🧹 Formulario limpio');}
+function buildMessage(d){
+var L=[['*Solicitud de Autorización*',''],['Fecha',d.fecha],['Placa',d.placa],['Cajas',d.cajas],['Sardina',d.sardina],['Propietario',d.propietario],['C.I.',d.ciPropietario],['Chofer',d.chofer],['C.I.',d.ciChofer],['CGT',d.cgt],['Vence CGT',fmtDate(d.venceCgt)],['Marca',d.marca],['Destino',d.destino],['Estado',d.estado],['Municipio',d.municipio],['Parroquia',d.parroquia],['Recibe',d.recibe],['Teléfono',d.telefono],['Origen',d.origen],['Productor',d.productor]];
+/* Sólo agregar Observación si tiene contenido */
+if(d.observacion && d.observacion.trim()){L.push(['Observación',d.observacion]);}
+var m='';
+for(var i=0;i<L.length;i++){
+if(i===0){m+=L[i][0]+NL+NL;continue;}
+m+=PIN+' *'+L[i][0]+':* '+L[i][1];
+if(i<L.length-1)m+=NL;
+}
+return m;}
+function sendWhatsApp(){if(!validateForWhatsApp())return;var data=collectForm();window.open('https://wa.me/?text='+encodeURIComponent(buildMessage(data)),'_blank');}
+var currentFilter='placa';
+function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-tab').forEach(function(t){t.classList.toggle('active',t.dataset.f===f);});
+var labels={placa:'Buscar por placa…',destino:'Buscar por destino…',chofer:'Buscar por chofer…'};
+$('searchInput').placeholder=labels[f];$('searchInput').value='';renderHistory();}
+function renderHistory(){var q=$('searchInput').value.trim().toLowerCase();var all=getHistory();
+var filtered=q?all.filter(function(h){return(h[currentFilter]||'').toLowerCase().indexOf(q)>-1;}):all;
+$('resultsCount').textContent=filtered.length+' registro'+(filtered.length!==1?'s':'')+(q?' encontrado'+(filtered.length!==1?'s':''):' en total');
+var list=$('historyList');
+if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="big">🗂️</div><div style="font-weight:700">Sin registros</div><div style="font-size:.78rem;margin-top:4px">'+(q?'No hay coincidencias':'Guarde su primera solicitud')+'</div></div>';return;}
+list.innerHTML=filtered.map(function(h){return '<div class="history-item"><div class="history-header"><div><div class="history-plate">🚗 '+esc(h.placa)+'</div><div style="font-size:.75rem;color:var(--text-light);margin-top:2px">'+esc(h.chofer)+'</div></div><div class="history-date">'+fmtDate(h.savedAt?h.savedAt.slice(0,10):'')+'</div></div><div class="history-meta">📍 <strong>'+esc(h.destino)+'</strong><br>🐟 '+esc(h.sardina)+' · '+esc(h.cajas)+' cajas · Origen: '+esc(h.origen)+'</div><div class="history-actions"><button class="hbtn hbtn-view" onclick="viewRecord('+h.id+')">👁️ Ver</button><button class="hbtn hbtn-edit" onclick="editRecord('+h.id+')">✏️ Editar</button><button class="hbtn hbtn-new" onclick="newFromRecord('+h.id+')">📄 Nueva</button><button class="hbtn hbtn-del" onclick="deleteRecord('+h.id+')">🗑️</button></div></div>';}).join('');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function viewRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;
+var fields=[['Fecha',h.fecha],['Placa',h.placa],['Cajas',h.cajas],['Sardina',h.sardina],['Propietario',h.propietario],['C.I. Propietario',h.ciPropietario],['Chofer',h.chofer],['C.I. Chofer',h.ciChofer],['CGT',h.cgt],['Vence CGT',fmtDate(h.venceCgt)],['Marca',h.marca],['Destino',h.destino],['Estado',h.estado],['Municipio',h.municipio],['Parroquia',h.parroquia],['Recibe',h.recibe],['Teléfono',h.telefono],['Origen',h.origen],['Productor',h.productor]];
+var html='<div class="detail-grid">';
+fields.forEach(function(f){html+='<div class="detail-item"><div class="detail-label">'+f[0]+'</div><div class="detail-value">'+esc(f[1])+'</div></div>';});
+html+='<div class="detail-item full"><div class="detail-label">Observación</div><div class="detail-value">'+esc(h.observacion)+'</div></div></div>';
+html+='<div class="btn-row" style="margin-top:16px"><button class="btn btn-whatsapp btn-sm" style="flex:1" onclick="sendRecordWA('+h.id+')">📱 WhatsApp</button><button class="btn btn-secondary btn-sm" style="flex:1" onclick="closeModal()">Cerrar</button></div>';
+$('modalBody').innerHTML=html;$('modalTitle').textContent='📋 '+h.placa;$('modalOverlay').classList.add('show');document.body.style.overflow='hidden';}
+function closeModal(){$('modalOverlay').classList.remove('show');document.body.style.overflow='';}
+function editRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;switchView('form');$('f_placa').value=h.placa;fillForm(h);$('placaHint').style.display='block';toast('✏️ Modifique y guarde como nueva solicitud');window.scrollTo({top:0,behavior:'smooth'});}
+function newFromRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;switchView('form');clearFormSilent();$('f_placa').value=h.placa;fillForm(h);$('placaHint').style.display='block';toast('📄 Nueva solicitud basada en '+h.placa);window.scrollTo({top:0,behavior:'smooth'});}
+function clearFormSilent(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha')i.value='';});$('f_sardina').value='';$('cgtAlert').className='cgt-alert';}
+function deleteRecord(id){if(!confirm('¿Eliminar este registro del historial?'))return;setHistory(getHistory().filter(function(x){return x.id!==id;}));renderHistory();toast('🗑️ Registro eliminado');}
+function sendRecordWA(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;window.open('https://wa.me/?text='+encodeURIComponent(buildMessage(h)),'_blank');}
+function switchView(v){var isForm=v==='form';$('viewForm').classList.toggle('hidden',!isForm);$('viewHistory').classList.toggle('hidden',isForm);$('tabForm').classList.toggle('active',isForm);$('tabHistory').classList.toggle('active',!isForm);$('navForm').classList.toggle('active',isForm);$('navHistory').classList.toggle('active',!isForm);if(!isForm)renderHistory();window.scrollTo({top:0});}
+$('f_fecha').value=todayStr();
+updateBadges();
+renderHistory();
+</script>
+</body>
+</html>
