@@ -100,6 +100,16 @@ main{margin-top:-46px;position:relative;z-index:3}
 .nav-badge{position:absolute;top:4px;right:calc(50% - 24px);background:var(--danger);color:#fff;font-size:.6rem;font-weight:800;min-width:17px;height:17px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .hidden{display:none!important}
 .footer-note{text-align:center;font-size:.7rem;color:var(--text-light);margin-top:24px;line-height:1.7}
+/* === Nuevos estilos: check "Mismo propietario" + autocompletado de Destino === */
+.field label.check-inline{display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0;font-weight:600;font-size:.82rem}
+.field label.check-inline input{width:auto;padding:0;margin:0;border:none;background:none;accent-color:var(--primary);transform:scale(1.15)}
+.field label.check-inline input:focus{box-shadow:none;border:none;background:none}
+.readonly-input{background:#eef2f7!important;color:var(--text-light)!important}
+.suggestions-list{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1.5px solid var(--border);border-radius:10px;max-height:220px;overflow-y:auto;z-index:30;box-shadow:0 8px 24px rgba(13,59,102,.18)}
+.suggestions-list.show{display:block}
+.suggestion-item{padding:10px 13px;font-size:.88rem;cursor:pointer;border-bottom:1px solid #f0f4f8;color:var(--text)}
+.suggestion-item:last-child{border-bottom:none}
+.suggestion-item:hover,.suggestion-item.active{background:#eef2f7}
 </style>
 </head>
 <body>
@@ -123,8 +133,9 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="field"><label>📌 Placa <span class="req">*</span></label><input type="text" id="f_placa" placeholder="Ej: AB123CD" maxlength="10" style="text-transform:uppercase;font-weight:700" required><div class="hint" id="placaHint" style="display:none;color:var(--accent);font-weight:600">✓ Datos cargados desde historial</div></div>
 <div class="grid-2">
 <div class="field"><label>📌 Cajas <span class="req">*</span></label><input type="number" id="f_cajas" placeholder="Cantidad" min="0" required></div>
-<div class="field"><label>📌 Sardina <span class="req">*</span></label><select id="f_sardina" required><option value="">Seleccionar…</option><option value="Entera">🐟 Entera</option><option value="Picada">🔪 Picada</option></select></div>
+<div class="field"><label>📌 Especie <span class="req">*</span></label><select id="f_especie" required><option value="Sardina" selected>🐟 Sardina</option><option value="Machuelo">🐟 Machuelo</option></select></div>
 </div>
+<div class="field"><label>📌 Presentación <span class="req">*</span></label><select id="f_presentacion" required><option value="">Seleccionar…</option><option value="Entera">🐟 Entera</option><option value="Picada">🔪 Picada</option><option value="Entera Congelada">🧊 Entera Congelada</option><option value="Picada Congelada">🧊 Picada Congelada</option></select></div>
 <div class="grid-2">
 <div class="field"><label>📌 Marca</label><input type="text" id="f_marca" placeholder="Ej: Ford, Chevrolet"></div>
 <div class="field"><label>📌 CGT <span class="req">*</span></label><input type="text" id="f_cgt" placeholder="N° de CGT" required></div>
@@ -138,12 +149,13 @@ main{margin-top:-46px;position:relative;z-index:3}
 <input type="text" id="f_ciPropietario" placeholder="Ej: 12.345.678" inputmode="numeric" required></div>
 <div class="hint" id="ciPropHint">Cédula: con puntos de mil · RIF (J-): sin separación</div></div></div>
 <div class="form-section"><div class="section-label">🧑‍✈️ Chofer</div>
+<div class="field"><label class="check-inline"><input type="checkbox" id="f_mismoProp" onchange="toggleMismoProp()"> Mismo propietario</label></div>
 <div class="field"><label>📌 Chofer <span class="req">*</span></label><input type="text" id="f_chofer" placeholder="Nombre completo" required></div>
 <div class="field"><label>📌 C.I. del Chofer <span class="req">*</span></label>
 <div class="grid-3"><select id="f_ciChofPrefijo" class="id-prefix"><option value="V-">V-</option><option value="E-">E-</option></select>
 <input type="text" id="f_ciChofer" placeholder="Ej: 12.345.678" inputmode="numeric" required></div></div></div>
 <div class="form-section"><div class="section-label">🗺️ Ruta y Origen</div>
-<div class="field"><label>📌 Destino <span class="req">*</span></label><input type="text" id="f_destino" placeholder="Empresa y ciudad (Ej: Buenaventura, Puerto Santo)" required></div>
+<div class="field" style="position:relative"><label>📌 Destino <span class="req">*</span></label><input type="text" id="f_destino" placeholder="Empresa y ciudad (Ej: Salmar, El Morro)" required autocomplete="off"><div class="suggestions-list" id="destinoSuggestions"></div></div>
 <div class="field"><label>📌 Estado</label><input type="text" id="f_estado" placeholder="Ej: Sucre"></div>
 <div class="grid-2">
 <div class="field"><label>📌 Municipio</label><input type="text" id="f_municipio" placeholder="Ej: Arismendi"></div>
@@ -191,6 +203,23 @@ main{margin-top:-46px;position:relative;z-index:3}
 <script>
 var NL=String.fromCharCode(10);
 var PIN='\uD83D\uDCCC';
+/* =========================================================
+   LISTA DE EMPRESAS (Destino) - ordenada alfabéticamente.
+   Para agregar una nueva empresa en el futuro, añada un
+   objeto con: label, estado, municipio y parroquia.
+   El campo "label" es el que se muestra y se guarda.
+   ========================================================= */
+var EMPRESAS = [
+{label:'Contupesca, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
+{label:'Inv. Buenaventura 2014, C.A., Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
+{label:'Inv. La Piragua, C.A., El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
+{label:'Inv. Tort Mar, C.A., El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
+{label:'Inv. Xouba, Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
+{label:'Inv. Yurianjor, C.A., Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
+{label:'Mi Esfuerzo, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
+{label:'Salmar, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
+{label:'UPSA Luisa Cáceres de Arismendi, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'}
+];
 var manifest={name:"Insopesca El Morro",short_name:"Insopesca",start_url:".",display:"standalone",background_color:"#0d3b66",theme_color:"#0d3b66",icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"512x512",type:"image/svg+xml"}]};
 document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
 if('serviceWorker' in navigator){var sw="self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(function(){});}
@@ -200,6 +229,14 @@ function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=
 var DB_KEY='insopesca_history_v1';
 function getHistory(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[]}catch(e){return[]}}
 function setHistory(h){localStorage.setItem(DB_KEY,JSON.stringify(h));updateBadges();}
+function migrateHistory(){
+var h=getHistory(),changed=false;
+h.forEach(function(r){
+if(r.especie===undefined){r.especie='Sardina';changed=true;}
+if(r.presentacion===undefined){r.presentacion=r.sardina||'';changed=true;}
+});
+if(changed)setHistory(h);
+}
 function updateBadges(){var n=getHistory().length;document.getElementById('navBadge').textContent=n;document.getElementById('histCountBadge').textContent=n;}
 function $(id){return document.getElementById(id);}
 function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show')},2600);}
@@ -224,10 +261,16 @@ if(val.length<3){hint.style.display='none';return;}
 var match=getHistory().find(function(h){return h.placa===val;});
 if(match){fillForm(match);hint.style.display='block';toast('✓ Datos cargados de: '+val);}else{hint.style.display='none';}});
 function fillForm(d){
-$('f_cajas').value=d.cajas||'';$('f_sardina').value=d.sardina||'';$('f_propietario').value=d.propietario||'';
+$('f_cajas').value=d.cajas||'';
+$('f_especie').value=d.especie||'Sardina';
+$('f_presentacion').value=d.presentacion||d.sardina||'';
+$('f_propietario').value=d.propietario||'';
 setCI('f_ciPropPrefijo','f_ciPropietario',d.ciPropietario||'');
 $('f_chofer').value=d.chofer||'';
 setCI('f_ciChofPrefijo','f_ciChofer',d.ciChofer||'');
+var same=!!(d.chofer&&d.propietario&&d.chofer===d.propietario&&d.ciChofer===d.ciPropietario);
+$('f_mismoProp').checked=same;
+toggleMismoProp();
 $('f_cgt').value=d.cgt||'';$('f_vence').value=d.venceCgt||'';checkCGT();
 $('f_marca').value=d.marca||'';$('f_destino').value=d.destino||'';$('f_estado').value=d.estado||'';
 $('f_municipio').value=d.municipio||'';$('f_parroquia').value=d.parroquia||'';
@@ -237,17 +280,62 @@ $('f_productor').value=d.productor||'';$('f_observacion').value=d.observacion||'
 function setCI(prefixId,inputId,full){var pre=$(prefixId),inp=$(inputId);var p='V-',num=full||'';
 if(num.indexOf('J-')===0){p='J-';num=num.slice(2);}else if(num.indexOf('E-')===0){p='E-';num=num.slice(2);}else if(num.indexOf('V-')===0){p='V-';num=num.slice(2);}
 pre.value=p;var raw=num.replace(/\D/g,'');inp.value=p==='J-'?raw:formatCI(raw);}
-function collectForm(){return{fecha:todayStr(),placa:$('f_placa').value.trim().toUpperCase(),cajas:$('f_cajas').value.trim(),sardina:$('f_sardina').value,propietario:$('f_propietario').value.trim(),ciPropietario:$('f_ciPropPrefijo').value+$('f_ciPropietario').value.trim(),chofer:$('f_chofer').value.trim(),ciChofer:$('f_ciChofPrefijo').value+$('f_ciChofer').value.trim(),cgt:$('f_cgt').value.trim(),venceCgt:$('f_vence').value,marca:$('f_marca').value.trim(),destino:$('f_destino').value.trim(),estado:$('f_estado').value.trim(),municipio:$('f_municipio').value.trim(),parroquia:$('f_parroquia').value.trim(),recibe:$('f_recibe').value.trim(),telefono:$('f_telefono').value.trim(),origen:$('f_origen').value.trim(),productor:$('f_productor').value.trim(),observacion:$('f_observacion').value.trim()};}
-function validateForm(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_sardina','el tipo de sardina'],['f_propietario','el propietario'],['f_ciPropietario','la C.I. del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el CGT'],['f_vence','el vencimiento del CGT'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
+/* === Sincronización "Mismo propietario" === */
+function syncMismoProp(){
+if(!$('f_mismoProp').checked)return;
+if($('f_ciPropPrefijo').value==='J-'){$('f_mismoProp').checked=false;toggleMismoProp();return;}
+$('f_chofer').value=$('f_propietario').value;
+$('f_ciChofPrefijo').value=$('f_ciPropPrefijo').value;
+$('f_ciChofer').value=$('f_ciPropietario').value;
+}
+function toggleMismoProp(){
+var checked=$('f_mismoProp').checked;
+if(checked&&$('f_ciPropPrefijo').value==='J-'){toast('⚠️ Un RIF no puede usarse como C.I. del chofer');$('f_mismoProp').checked=false;checked=false;}
+if(checked){
+syncMismoProp();
+$('f_chofer').readOnly=true;$('f_ciChofer').readOnly=true;$('f_ciChofPrefijo').disabled=true;
+$('f_chofer').classList.add('readonly-input');$('f_ciChofer').classList.add('readonly-input');$('f_ciChofPrefijo').classList.add('readonly-input');
+}else{
+$('f_chofer').readOnly=false;$('f_ciChofer').readOnly=false;$('f_ciChofPrefijo').disabled=false;
+$('f_chofer').classList.remove('readonly-input');$('f_ciChofer').classList.remove('readonly-input');$('f_ciChofPrefijo').classList.remove('readonly-input');
+}
+}
+$('f_propietario').addEventListener('input',syncMismoProp);
+$('f_ciPropietario').addEventListener('input',syncMismoProp);
+$('f_ciPropPrefijo').addEventListener('change',syncMismoProp);
+/* === Autocompletado de Destino === */
+function renderDestinoSuggestions(){
+var q=$('f_destino').value.trim().toLowerCase();
+var list=$('destinoSuggestions');
+if(!q){list.classList.remove('show');list.innerHTML='';return;}
+var matches=[];
+for(var i=0;i<EMPRESAS.length;i++){if(EMPRESAS[i].label.toLowerCase().indexOf(q)>-1)matches.push(i);}
+if(!matches.length){list.classList.remove('show');list.innerHTML='';return;}
+list.innerHTML=matches.map(function(i){return '<div class="suggestion-item" data-i="'+i+'" onmousedown="selectEmpresa('+i+',event)">'+esc(EMPRESAS[i].label)+'</div>';}).join('');
+list.classList.add('show');
+}
+function selectEmpresa(i,ev){
+if(ev)ev.preventDefault();
+var e=EMPRESAS[i];
+$('f_destino').value=e.label;
+if(e.estado)$('f_estado').value=e.estado;
+if(e.municipio)$('f_municipio').value=e.municipio;
+if(e.parroquia)$('f_parroquia').value=e.parroquia;
+$('destinoSuggestions').classList.remove('show');
+}
+$('f_destino').addEventListener('input',renderDestinoSuggestions);
+$('f_destino').addEventListener('blur',function(){setTimeout(function(){$('destinoSuggestions').classList.remove('show');},180);});
+function collectForm(){return{fecha:todayStr(),placa:$('f_placa').value.trim().toUpperCase(),cajas:$('f_cajas').value.trim(),especie:$('f_especie').value,presentacion:$('f_presentacion').value,propietario:$('f_propietario').value.trim(),ciPropietario:$('f_ciPropPrefijo').value+$('f_ciPropietario').value.trim(),chofer:$('f_chofer').value.trim(),ciChofer:$('f_ciChofPrefijo').value+$('f_ciChofer').value.trim(),cgt:$('f_cgt').value.trim(),venceCgt:$('f_vence').value,marca:$('f_marca').value.trim(),destino:$('f_destino').value.trim(),estado:$('f_estado').value.trim(),municipio:$('f_municipio').value.trim(),parroquia:$('f_parroquia').value.trim(),recibe:$('f_recibe').value.trim(),telefono:$('f_telefono').value.trim(),origen:$('f_origen').value.trim(),productor:$('f_productor').value.trim(),observacion:$('f_observacion').value.trim()};}
+function validateForm(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_presentacion','la presentación'],['f_propietario','el propietario'],['f_ciPropietario','la C.I. del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el CGT'],['f_vence','el vencimiento del CGT'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
 for(var i=0;i<req.length;i++){var id=req[i][0];if(!$(id).value.trim()){toast('⚠️ Falta '+req[i][1]);$(id).focus();$(id).style.borderColor='#c0392b';setTimeout(function(el){el.style.borderColor='';}.bind(null,$(id)),2000);return false;}}
 return true;}
-function validateForWhatsApp(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_sardina','el tipo de sardina'],['f_marca','la marca'],['f_propietario','el propietario'],['f_ciPropietario','la C.I./RIF del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el N° de CGT'],['f_vence','el vencimiento del CGT'],['f_estado','el estado'],['f_municipio','el municipio'],['f_parroquia','la parroquia'],['f_recibe','el nombre de quien recibe'],['f_telefono','el teléfono de quien recibe'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
+function validateForWhatsApp(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_presentacion','la presentación'],['f_marca','la marca'],['f_propietario','el propietario'],['f_ciPropietario','la C.I./RIF del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el N° de CGT'],['f_vence','el vencimiento del CGT'],['f_estado','el estado'],['f_municipio','el municipio'],['f_parroquia','la parroquia'],['f_recibe','el nombre de quien recibe'],['f_telefono','el teléfono de quien recibe'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
 for(var i=0;i<req.length;i++){var id=req[i][0];if(!$(id).value.trim()){toast('⚠️ Falta '+req[i][1]+' para enviar por WhatsApp');$(id).focus();$(id).style.borderColor='#c0392b';setTimeout(function(el){el.style.borderColor='';}.bind(null,$(id)),2500);return false;}}
 return true;}
 function saveToHistory(){if(!validateForm())return;var data=collectForm();var h=getHistory();h.unshift(Object.assign({},data,{id:Date.now(),savedAt:new Date().toISOString()}));setHistory(h);toast('💾 Guardado en historial');}
-function clearForm(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha')i.value='';});$('f_sardina').value='';$('cgtAlert').className='cgt-alert';$('placaHint').style.display='none';toast('🧹 Formulario limpio');}
+function clearForm(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha'&&i.type!=='checkbox')i.value='';});$('f_especie').value='Sardina';$('f_presentacion').value='';$('f_mismoProp').checked=false;toggleMismoProp();$('cgtAlert').className='cgt-alert';$('placaHint').style.display='none';toast('🧹 Formulario limpio');}
 function buildMessage(d){
-var L=[['*Solicitud de Autorización*',''],['Fecha',d.fecha],['Placa',d.placa],['Cajas',d.cajas],['Sardina',d.sardina],['Propietario',d.propietario],['C.I.',d.ciPropietario],['Chofer',d.chofer],['C.I.',d.ciChofer],['CGT',d.cgt],['Vence CGT',fmtDate(d.venceCgt)],['Marca',d.marca],['Destino',d.destino],['Estado',d.estado],['Municipio',d.municipio],['Parroquia',d.parroquia],['Recibe',d.recibe],['Teléfono',d.telefono],['Origen',d.origen],['Productor',d.productor]];
+var L=[['*Solicitud de Autorización*',''],['Fecha',d.fecha],['Placa',d.placa],['Cajas',d.cajas],['Especie',d.especie||'Sardina'],['Presentación',d.presentacion||d.sardina||''],['Propietario',d.propietario],['C.I.',d.ciPropietario],['Chofer',d.chofer],['C.I.',d.ciChofer],['CGT',d.cgt],['Vence CGT',fmtDate(d.venceCgt)],['Marca',d.marca],['Destino',d.destino],['Estado',d.estado],['Municipio',d.municipio],['Parroquia',d.parroquia],['Recibe',d.recibe],['Teléfono',d.telefono],['Origen',d.origen],['Productor',d.productor]];
 if(d.observacion && d.observacion.trim()){L.push(['Observación',d.observacion]);}
 var m='';
 for(var i=0;i<L.length;i++){
@@ -266,10 +354,10 @@ var filtered=q?all.filter(function(h){return(h[currentFilter]||'').toLowerCase()
 $('resultsCount').textContent=filtered.length+' registro'+(filtered.length!==1?'s':'')+(q?' encontrado'+(filtered.length!==1?'s':''):' en total');
 var list=$('historyList');
 if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="big">🗂️</div><div style="font-weight:700">Sin registros</div><div style="font-size:.78rem;margin-top:4px">'+(q?'No hay coincidencias':'Guarde su primera solicitud')+'</div></div>';return;}
-list.innerHTML=filtered.map(function(h){return '<div class="history-item"><div class="history-header"><div><div class="history-plate">🚗 '+esc(h.placa)+'</div><div style="font-size:.75rem;color:var(--text-light);margin-top:2px">'+esc(h.chofer)+'</div></div><div class="history-date">'+fmtDate(h.savedAt?h.savedAt.slice(0,10):'')+'</div></div><div class="history-meta">📍 <strong>'+esc(h.destino)+'</strong><br>🐟 '+esc(h.sardina)+' · '+esc(h.cajas)+' cajas · Origen: '+esc(h.origen)+'</div><div class="history-actions"><button class="hbtn hbtn-view" onclick="viewRecord('+h.id+')">👁️ Ver</button><button class="hbtn hbtn-edit" onclick="editRecord('+h.id+')">✏️ Editar</button><button class="hbtn hbtn-new" onclick="newFromRecord('+h.id+')">📄 Nueva</button><button class="hbtn hbtn-del" onclick="deleteRecord('+h.id+')">🗑️</button></div></div>';}).join('');}
+list.innerHTML=filtered.map(function(h){var esp=h.especie||'Sardina';var pres=h.presentacion||h.sardina||'';return '<div class="history-item"><div class="history-header"><div><div class="history-plate">🚗 '+esc(h.placa)+'</div><div style="font-size:.75rem;color:var(--text-light);margin-top:2px">'+esc(h.chofer)+'</div></div><div class="history-date">'+fmtDate(h.savedAt?h.savedAt.slice(0,10):'')+'</div></div><div class="history-meta">📍 <strong>'+esc(h.destino)+'</strong><br>🐟 '+esc(esp+(pres?' '+pres:''))+' · '+esc(h.cajas)+' cajas · Origen: '+esc(h.origen)+'</div><div class="history-actions"><button class="hbtn hbtn-view" onclick="viewRecord('+h.id+')">👁️ Ver</button><button class="hbtn hbtn-edit" onclick="editRecord('+h.id+')">✏️ Editar</button><button class="hbtn hbtn-new" onclick="newFromRecord('+h.id+')">📄 Nueva</button><button class="hbtn hbtn-del" onclick="deleteRecord('+h.id+')">🗑️</button></div></div>';}).join('');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function viewRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;
-var fields=[['Fecha',h.fecha],['Placa',h.placa],['Cajas',h.cajas],['Sardina',h.sardina],['Propietario',h.propietario],['C.I. Propietario',h.ciPropietario],['Chofer',h.chofer],['C.I. Chofer',h.ciChofer],['CGT',h.cgt],['Vence CGT',fmtDate(h.venceCgt)],['Marca',h.marca],['Destino',h.destino],['Estado',h.estado],['Municipio',h.municipio],['Parroquia',h.parroquia],['Recibe',h.recibe],['Teléfono',h.telefono],['Origen',h.origen],['Productor',h.productor]];
+var fields=[['Fecha',h.fecha],['Placa',h.placa],['Cajas',h.cajas],['Especie',h.especie||'Sardina'],['Presentación',h.presentacion||h.sardina||''],['Propietario',h.propietario],['C.I. Propietario',h.ciPropietario],['Chofer',h.chofer],['C.I. Chofer',h.ciChofer],['CGT',h.cgt],['Vence CGT',fmtDate(h.venceCgt)],['Marca',h.marca],['Destino',h.destino],['Estado',h.estado],['Municipio',h.municipio],['Parroquia',h.parroquia],['Recibe',h.recibe],['Teléfono',h.telefono],['Origen',h.origen],['Productor',h.productor]];
 var html='<div class="detail-grid">';
 fields.forEach(function(f){html+='<div class="detail-item"><div class="detail-label">'+f[0]+'</div><div class="detail-value">'+esc(f[1])+'</div></div>';});
 html+='<div class="detail-item full"><div class="detail-label">Observación</div><div class="detail-value">'+esc(h.observacion)+'</div></div></div>';
@@ -278,11 +366,12 @@ $('modalBody').innerHTML=html;$('modalTitle').textContent='📋 '+h.placa;$('mod
 function closeModal(){$('modalOverlay').classList.remove('show');document.body.style.overflow='';}
 function editRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;switchView('form');$('f_placa').value=h.placa;fillForm(h);$('placaHint').style.display='block';toast('✏️ Modifique y guarde como nueva solicitud');window.scrollTo({top:0,behavior:'smooth'});}
 function newFromRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;switchView('form');clearFormSilent();$('f_placa').value=h.placa;fillForm(h);$('placaHint').style.display='block';toast('📄 Nueva solicitud basada en '+h.placa);window.scrollTo({top:0,behavior:'smooth'});}
-function clearFormSilent(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha')i.value='';});$('f_sardina').value='';$('cgtAlert').className='cgt-alert';}
+function clearFormSilent(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha'&&i.type!=='checkbox')i.value='';});$('f_especie').value='Sardina';$('f_presentacion').value='';$('f_mismoProp').checked=false;$('cgtAlert').className='cgt-alert';}
 function deleteRecord(id){if(!confirm('¿Eliminar este registro del historial?'))return;setHistory(getHistory().filter(function(x){return x.id!==id;}));renderHistory();toast('🗑️ Registro eliminado');}
 function sendRecordWA(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;window.open('https://wa.me/?text='+encodeURIComponent(buildMessage(h)),'_blank');}
 function switchView(v){var isForm=v==='form';$('viewForm').classList.toggle('hidden',!isForm);$('viewHistory').classList.toggle('hidden',isForm);$('tabForm').classList.toggle('active',isForm);$('tabHistory').classList.toggle('active',!isForm);$('navForm').classList.toggle('active',isForm);$('navHistory').classList.toggle('active',!isForm);if(!isForm)renderHistory();window.scrollTo({top:0});}
 $('f_fecha').value=todayStr();
+migrateHistory();
 updateBadges();
 renderHistory();
 </script>
