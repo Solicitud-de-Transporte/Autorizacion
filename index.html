@@ -117,11 +117,10 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="card-sub">Complete los datos. Los campos con <span style="color:#c0392b">*</span> son obligatorios.</div>
 <form id="authForm" autocomplete="off" onsubmit="return false">
 <div class="form-section"><div class="section-label">🗓️ Fecha</div>
-<div class="grid-2">
 <div class="field"><label>📌 Fecha <span class="req">*</span></label><input type="text" id="f_fecha" readonly style="background:#eef2f7;font-weight:700;color:var(--primary)"></div>
-<div class="field"><label>📌 Placa <span class="req">*</span></label><input type="text" id="f_placa" placeholder="Ej: AB123CD" maxlength="10" style="text-transform:uppercase;font-weight:700" required><div class="hint" id="placaHint" style="display:none;color:var(--accent);font-weight:600">✓ Datos cargados desde historial</div></div>
-</div></div>
+</div>
 <div class="form-section"><div class="section-label">🚛 Vehículo y Carga</div>
+<div class="field"><label>📌 Placa <span class="req">*</span></label><input type="text" id="f_placa" placeholder="Ej: AB123CD" maxlength="10" style="text-transform:uppercase;font-weight:700" required><div class="hint" id="placaHint" style="display:none;color:var(--accent);font-weight:600">✓ Datos cargados desde historial</div></div>
 <div class="grid-2">
 <div class="field"><label>📌 Cajas <span class="req">*</span></label><input type="number" id="f_cajas" placeholder="Cantidad" min="0" required></div>
 <div class="field"><label>📌 Sardina <span class="req">*</span></label><select id="f_sardina" required><option value="">Seleccionar…</option><option value="Entera">🐟 Entera</option><option value="Picada">🔪 Picada</option></select></div>
@@ -144,6 +143,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="grid-3"><select id="f_ciChofPrefijo" class="id-prefix"><option value="V-">V-</option><option value="E-">E-</option></select>
 <input type="text" id="f_ciChofer" placeholder="Ej: 12.345.678" inputmode="numeric" required></div></div></div>
 <div class="form-section"><div class="section-label">🗺️ Ruta y Origen</div>
+<div class="field"><label>📌 Destino <span class="req">*</span></label><input type="text" id="f_destino" placeholder="Empresa y ciudad (Ej: Buenaventura, Puerto Santo)" required></div>
 <div class="field"><label>📌 Estado</label><input type="text" id="f_estado" placeholder="Ej: Sucre"></div>
 <div class="grid-2">
 <div class="field"><label>📌 Municipio</label><input type="text" id="f_municipio" placeholder="Ej: Arismendi"></div>
@@ -153,7 +153,6 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="field"><label>📌 Recibe</label><input type="text" id="f_recibe" placeholder="Nombre de quien recibe la carga"></div>
 <div class="field"><label>📌 Teléfono</label><input type="tel" id="f_telefono" placeholder="Ej: 04125634731" inputmode="tel"></div>
 </div>
-<div class="field"><label>📌 Destino <span class="req">*</span></label><input type="text" id="f_destino" placeholder="Empresa y ciudad (Ej: Buenaventura, Puerto Santo)" required></div>
 <div class="field"><label>📌 Origen <span class="req">*</span></label><input type="text" id="f_origen" placeholder="Puerto de carga (Ej: El Morro)" required></div>
 <div class="field"><label>📌 Productor <span class="req">*</span></label><input type="text" id="f_productor" placeholder="Máquina, empresa o picadora que cargó" required></div>
 </div>
@@ -204,7 +203,6 @@ function setHistory(h){localStorage.setItem(DB_KEY,JSON.stringify(h));updateBadg
 function updateBadges(){var n=getHistory().length;document.getElementById('navBadge').textContent=n;document.getElementById('histCountBadge').textContent=n;}
 function $(id){return document.getElementById(id);}
 function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show')},2600);}
-/* ⬇️ ÚNICO CAMBIO: ahora devuelve dd/mm/aaaa */
 function todayStr(){var d=new Date();var dd=('0'+d.getDate()).slice(-2);var mm=('0'+(d.getMonth()+1)).slice(-2);return dd+'/'+mm+'/'+d.getFullYear();}
 function fmtDate(iso){if(!iso)return'';var d=new Date(iso.length===10?iso+'T00:00:00':iso);return d.toLocaleDateString('es-VE');}
 function formatCI(v){v=v.replace(/\D/g,'');return v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
