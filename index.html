@@ -34,7 +34,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 .card-title{font-size:1.05rem;font-weight:700;color:var(--primary);margin-bottom:4px}
 .card-sub{font-size:.8rem;color:var(--text-light);margin-bottom:18px}
 .section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
-.field{margin-bottom:14px}
+.field{margin-bottom:14px;position:relative}
 .field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:5px}
 .field label .req{color:var(--danger)}
 .field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:.95rem;font-family:inherit;color:var(--text);background:#fbfcfe;outline:none}
@@ -156,7 +156,11 @@ main{margin-top:-46px;position:relative;z-index:3}
 </div>
 <div class="field"><label>📌 Presentación <span class="req">*</span></label><select id="f_presentacion" required><option value="">Seleccionar…</option><option value="Entera">🐟 Entera</option><option value="Picada">🔪 Picada</option><option value="Entera Congelada">🧊 Entera Congelada</option><option value="Picada Congelada">🧊 Picada Congelada</option></select></div>
 <div class="grid-2">
-<div class="field"><label>📌 Marca</label><input type="text" id="f_marca" placeholder="Ej: Ford, Chevrolet"></div>
+<div class="field">
+  <label>📌 Marca</label>
+  <input type="text" id="f_marca" placeholder="Ej: Kenworth, Ford" autocomplete="off">
+  <div class="suggestions-list" id="marcaSuggestions"></div>
+</div>
 <div class="field"><label>📌 CGT <span class="req">*</span></label><input type="text" id="f_cgt" placeholder="N° de CGT" required></div>
 </div>
 <div class="field"><label>📌 Vence CGT <span class="req">*</span></label><input type="date" id="f_vence" required><div class="cgt-alert" id="cgtAlert"></div></div>
@@ -174,7 +178,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="grid-3"><select id="f_ciChofPrefijo" class="id-prefix"><option value="V-">V-</option><option value="E-">E-</option></select>
 <input type="text" id="f_ciChofer" placeholder="Ej: 12.345.678" inputmode="numeric" required></div></div></div>
 <div class="form-section"><div class="section-label">🗺️ Ruta y Origen</div>
-<div class="field" style="position:relative"><label>📌 Destino <span class="req">*</span></label><input type="text" id="f_destino" placeholder="Empresa y ciudad (Ej: Salmar, El Morro)" required autocomplete="off"><div class="suggestions-list" id="destinoSuggestions"></div></div>
+<div class="field"><label>📌 Destino <span class="req">*</span></label><input type="text" id="f_destino" placeholder="Empresa y ciudad (Ej: Salmar, El Morro)" required autocomplete="off"><div class="suggestions-list" id="destinoSuggestions"></div></div>
 <div class="field"><label>📌 Estado</label><input type="text" id="f_estado" placeholder="Ej: Sucre"></div>
 <div class="grid-2">
 <div class="field"><label>📌 Municipio</label><input type="text" id="f_municipio" placeholder="Ej: Arismendi"></div>
@@ -227,6 +231,8 @@ main{margin-top:-46px;position:relative;z-index:3}
 <script>
 var NL=String.fromCharCode(10);
 var PIN='\uD83D\uDCCC';
+
+// Base de datos de Empresas para Destino
 var EMPRESAS = [
 {label:'Contupesca, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
 {label:'Inv. Buenaventura 2014, C.A., Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
@@ -238,6 +244,15 @@ var EMPRESAS = [
 {label:'Salmar, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
 {label:'UPSA Luisa Cáceres de Arismendi, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'}
 ];
+
+// Base de datos de Marcas de vehículos tipo cava
+var MARCAS_VEHICULOS = [
+'Kenworth','Chevrolet','Ford','Mack','Volvo','Scania','Mercedes-Benz','Iveco','Freightliner','International',
+'Hino','Isuzu','JAC','Foton','JMC','Dongfeng','Mitsubishi','Nissan','Toyota','Hyundai','Kia','Peugeot',
+'Renault','Citroën','Fiat','MAN','DAF','Peterbilt','Western Star','Sterling','Autocar','UD Trucks',
+'Tata','Ashok Leyland','Sinotruk','Shacman','FAW','CAMC','Dayun','Maxus','JBC','Mazda','Dodge','Ram'
+];
+
 var manifest={name:"Insopesca El Morro",short_name:"Insopesca",start_url:".",display:"standalone",background_color:"#0d3b66",theme_color:"#0d3b66",icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"512x512",type:"image/svg+xml"}]};
 document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
 if('serviceWorker' in navigator){var sw="self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(function(){});}
@@ -313,6 +328,28 @@ $('f_chofer').classList.remove('readonly-input');$('f_ciChofer').classList.remov
 $('f_propietario').addEventListener('input',syncMismoProp);
 $('f_ciPropietario').addEventListener('input',syncMismoProp);
 $('f_ciPropPrefijo').addEventListener('change',syncMismoProp);
+
+/* === AUTOCOMPLETADO DE MARCA === */
+function renderMarcaSuggestions(){
+    var q=$('f_marca').value.trim().toLowerCase();
+    var list=$('marcaSuggestions');
+    if(!q){list.classList.remove('show');list.innerHTML='';return;}
+    var matches=MARCAS_VEHICULOS.filter(function(m){return m.toLowerCase().indexOf(q)>-1;});
+    if(!matches.length){list.classList.remove('show');list.innerHTML='';return;}
+    list.innerHTML=matches.map(function(m){
+        return '<div class="suggestion-item" onmousedown="selectMarca(\''+m+'\',event)">'+m+'</div>';
+    }).join('');
+    list.classList.add('show');
+}
+function selectMarca(m,ev){
+    if(ev)ev.preventDefault();
+    $('f_marca').value=m;
+    $('marcaSuggestions').classList.remove('show');
+}
+$('f_marca').addEventListener('input',renderMarcaSuggestions);
+$('f_marca').addEventListener('blur',function(){setTimeout(function(){$('marcaSuggestions').classList.remove('show');},180);});
+
+/* === AUTOCOMPLETADO DE DESTINO === */
 function renderDestinoSuggestions(){
 var q=$('f_destino').value.trim().toLowerCase();
 var list=$('destinoSuggestions');
@@ -334,6 +371,7 @@ $('destinoSuggestions').classList.remove('show');
 }
 $('f_destino').addEventListener('input',renderDestinoSuggestions);
 $('f_destino').addEventListener('blur',function(){setTimeout(function(){$('destinoSuggestions').classList.remove('show');},180);});
+
 function collectForm(){return{fecha:todayStr(),placa:$('f_placa').value.trim().toUpperCase(),cajas:$('f_cajas').value.trim(),especie:$('f_especie').value,presentacion:$('f_presentacion').value,propietario:$('f_propietario').value.trim(),ciPropietario:$('f_ciPropPrefijo').value+$('f_ciPropietario').value.trim(),chofer:$('f_chofer').value.trim(),ciChofer:$('f_ciChofPrefijo').value+$('f_ciChofer').value.trim(),cgt:$('f_cgt').value.trim(),venceCgt:$('f_vence').value,marca:$('f_marca').value.trim(),destino:$('f_destino').value.trim(),estado:$('f_estado').value.trim(),municipio:$('f_municipio').value.trim(),parroquia:$('f_parroquia').value.trim(),recibe:$('f_recibe').value.trim(),telefono:$('f_telefono').value.trim(),origen:$('f_origen').value.trim(),productor:$('f_productor').value.trim(),observacion:$('f_observacion').value.trim()};}
 function validateForm(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_presentacion','la presentación'],['f_propietario','el propietario'],['f_ciPropietario','la C.I. del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el CGT'],['f_vence','el vencimiento del CGT'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
 for(var i=0;i<req.length;i++){var id=req[i][0];if(!$(id).value.trim()){toast('⚠️ Falta '+req[i][1]);$(id).focus();$(id).style.borderColor='#c0392b';setTimeout(function(el){el.style.borderColor='';}.bind(null,$(id)),2000);return false;}}
@@ -393,49 +431,54 @@ function applyCIValue(prefixId, inputId, value){
     inp.value = (prefix === 'J-') ? clean : formatCI(clean);
 }
 
-// Parser mejorado para certificados CGT
-function parseCGTText(text) {
+// Parser mejorado para CGT
+function parseCGTText(rawText) {
     var data = {};
-    // Normalizar texto para OCR
-    var cleanText = text.replace(/\r/g, '').replace(/\u00A0/g, ' ');
+    // Limpiar texto: reemplazar saltos de línea y espacios múltiples por un solo espacio
+    var text = rawText.replace(/\s+/g, ' ').trim();
 
-    // Placa: busca "Placa/Matrícula" o "Placa" y toma el siguiente bloque alfanumérico
-    var placaMatch = cleanText.match(/(?:Placa\/Matr[íi]cula|Placa\/Matricula|Placa)[:\s\n]*([A-Z0-9]{6,8})/i);
-    if (placaMatch) data.placa = placaMatch[1].trim().toUpperCase();
+    // Placa (Acepta Placa/Matrícula o Placa)
+    var placaMatch = text.match(/(?:Placa[\/\s]*Matr[íi]cula|Placa)[:\s]*([A-Z0-9]{5,10})/i);
+    if (placaMatch) data.placa = placaMatch[1].toUpperCase();
 
-    // Marca: busca "Marca:" y toma hasta antes de "Modelo"
-    var marcaMatch = cleanText.match(/Marca[:\s\n]*([^\n]+?)(?=\n|Modelo|Tipo|$)/i);
+    // Marca (Detiene la captura antes de Modelo, Tipo, Serial, etc.)
+    var marcaMatch = text.match(/Marca[:\s]*([A-Za-z0-9\s\-\.]+?)(?=\s*Modelo|\s*Tipo|\s*Serial|\s*Capacidad|\s*Año|\s*$)/i);
     if (marcaMatch) data.marca = marcaMatch[1].trim();
 
-    // CGT: busca "CGT" seguido de números
-    var cgtMatch = cleanText.match(/CGT[:\s]*([0-9]{10,15})/i) || cleanText.match(/\b(CGT\d+)\b/i);
+    // CGT (Busca la palabra CGT y toma el número largo)
+    var cgtMatch = text.match(/(?:CGT|C\.G\.T\.?)[:\s]*([A-Z0-9]{8,20})/i);
     if (cgtMatch) {
         data.cgt = cgtMatch[1].replace(/CGT/i, '').trim();
+    } else {
+        var fallbackCgt = text.match(/\b(CGT[0-9]{10,15})\b/i);
+        if (fallbackCgt) data.cgt = fallbackCgt[1].replace(/CGT/i, '').trim();
     }
 
     // Vencimiento
-    var venceMatch = cleanText.match(/Fecha\s*De\s*Vencimiento[:\s\n]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i) || cleanText.match(/Vencimiento[:\s\n]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
-    if (venceMatch) data.venceCgt = venceMatch[1].trim();
+    var venceMatch = text.match(/(?:Fecha\s*De\s*Vencimiento|Vencimiento)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
+    if (venceMatch) data.venceCgt = venceMatch[1];
 
-    // Propietario: busca "Nombre y apellido" y toma todo hasta "Tipo de documento" o "N°"
-    var propMatch = cleanText.match(/Nombre\s*y\s*apellido[s]?[:\s\n]*([\s\S]+?)(?=\n*Tipo\s*de\s*documento|\n*N[°o]\s*de\s*documento|$)/i);
+    // Propietario (Captura hasta que encuentre Tipo o N° de documento)
+    var propMatch = text.match(/Nombre\s*y\s*apellido[s]?[:\s]*(.*?)(?=\s*Tipo\s*de\s*documento|\s*N[°o]\s*de\s*documento|\s*$)/i);
     if (propMatch) data.propietario = propMatch[1].trim();
 
-    // C.I. / RIF: busca Tipo de documento y N° de documento
-    var tipoDocMatch = cleanText.match(/Tipo\s*de\s*documento[:\s\n]*([VEJ])/i);
-    var numDocMatch = cleanText.match(/N[°o]\s*de\s*documento[:\s\n]*([0-9\.]+)/i);
+    // Cédula / RIF
+    var tipoDoc = text.match(/Tipo\s*de\s*documento[:\s]*([VEJ])/i);
+    var numDoc = text.match(/N[°o]\s*de\s*documento[:\s]*([0-9\.]+)/i);
     
-    if (tipoDocMatch && numDocMatch) {
-        data.ciPropietario = tipoDocMatch[1].toUpperCase() + '-' + numDocMatch[1].replace(/[\.\s]/g, '');
-    } else if (numDocMatch) {
-        var isJ = /J/i.test(cleanText) ? 'J-' : 'V-';
-        data.ciPropietario = isJ + numDocMatch[1].replace(/[\.\s]/g, '');
+    if (tipoDoc && numDoc) {
+        data.ciPropietario = tipoDoc[1].toUpperCase() + '-' + numDoc[1].replace(/[\.\s]/g, '');
+    } else if (numDoc) {
+        data.ciPropietario = 'J-' + numDoc[1].replace(/[\.\s]/g, ''); // Por defecto J si no se detecta letra
+    } else {
+        var rifMatch = text.match(/\b([VEJ])[-\s]*([0-9]{7,9})\b/i);
+        if (rifMatch) data.ciPropietario = rifMatch[1].toUpperCase() + '-' + rifMatch[2];
     }
 
     return data;
 }
 
-// Parser genérico para WhatsApp
+// Parser genérico para WhatsApp y textos informales
 function parsePastedText(text){
     var data = {}, context = null;
     var lines = String(text||'').split(/\r?\n/);
@@ -530,8 +573,7 @@ function fillFromText(text, qrText){
     var genericData = parsePastedText(rawTextToParse);
     var cgtData = parseCGTText(rawTextToParse);
     
-    // Si el documento es un CGT, ignoramos el parser genérico para no llenar datos erróneos
-    var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT[:\s]*\d{10,}/i.test(text) || Object.keys(cgtData).length > 0 || /CGT/i.test(qrText);
+    var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT[:\s]*\d{8,}/i.test(text) || Object.keys(cgtData).length > 0 || /CGT/i.test(qrText);
     
     var data = {};
     if (isCGTDocument) {
@@ -545,7 +587,6 @@ function fillFromText(text, qrText){
         data = genericData;
     }
     
-    // Fallback
     if (!Object.keys(data).length || Object.values(data).every(v => !v)) {
         if (Object.keys(genericData).length) data = genericData;
         else {
@@ -587,7 +628,6 @@ function fillFromText(text, qrText){
     if(data.venceCgt){ var iso = parseDateValue(data.venceCgt); if(iso){ $('f_vence').value = iso; filled++; } }
     if(data.marca){ $('f_marca').value = data.marca; filled++; }
     
-    // Solo llenamos los demás si NO es un CGT
     if (!isCGTDocument) {
         if(data.destino){ $('f_destino').value = data.destino; filled++; }
         if(data.estado){ $('f_estado').value = data.estado; filled++; }
@@ -647,9 +687,7 @@ async function handleScanFile(event){
     }
 }
 
-// Intenta leer QR nativo o con jsQR
 async function detectQRFromCanvas(canvas) {
-    // 1. Intentar con BarcodeDetector nativo (más rápido y preciso en móviles)
     if ('BarcodeDetector' in window) {
         try {
             const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
@@ -657,15 +695,12 @@ async function detectQRFromCanvas(canvas) {
             if (barcodes.length > 0) return barcodes[0].rawValue;
         } catch(e) { console.warn('BarcodeDetector falló', e); }
     }
-    
-    // 2. Fallback a jsQR
     try {
         const ctx = canvas.getContext('2d');
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
         if (code) return code.data;
     } catch(e) { console.warn('jsQR falló', e); }
-    
     return '';
 }
 
@@ -674,7 +709,6 @@ async function extractImageText(file){
     var jsQR = await loadJsQR();
     
     updateLoadingSub('Preparando imagen…');
-    // Preprocesar imagen (escalar para mejorar rendimiento y lectura)
     var img = await new Promise((resolve, reject) => {
         var i = new Image();
         i.onload = () => resolve(i);
@@ -683,7 +717,7 @@ async function extractImageText(file){
     });
     
     var canvas = document.createElement('canvas');
-    var maxDim = 2000; // Tamaño óptimo para OCR y QR
+    var maxDim = 2000; 
     var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
     canvas.width = img.width * scale;
     canvas.height = img.height * scale;
@@ -723,7 +757,6 @@ async function extractPdfText(file){
         if(pageText) text += pageText + '\n';
     }
     
-    // Extraer QR de la página 1
     updateLoadingSub('Buscando código QR…');
     try {
         var page1 = await pdf.getPage(1);
@@ -740,7 +773,6 @@ async function extractPdfText(file){
 
     if(text.trim()) return { ocr: text, qr: qrText };
     
-    // Si no hay texto, aplicar OCR
     updateLoadingSub('Documento escaneado, aplicando OCR…');
     var page1 = await pdf.getPage(1);
     var viewport = page1.getViewport({scale: 2});
