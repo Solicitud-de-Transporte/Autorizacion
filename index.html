@@ -364,7 +364,7 @@ async function pasteData(){
         }
         var text = await navigator.clipboard.readText();
         if(!text || !text.trim()){ toast('📋 El portapapeles está vacío'); return; }
-        fillFromText(text);
+        fillFromText(text, '');
     }catch(e){
         toast('⚠️ Permite el acceso al portapapeles e intenta de nuevo');
     }
@@ -392,6 +392,55 @@ function applyCIValue(prefixId, inputId, value){
     pre.value = prefix;
     inp.value = (prefix === 'J-') ? clean : formatCI(clean);
 }
+
+// Parser específico para certificados CGT
+function parseCGTText(text) {
+    var data = {};
+    text = String(text).replace(/\r/g, '');
+
+    // Placa
+    var placaMatch = text.match(/Placa\/Matr[íi]cula[:\s]*([A-Z0-9]+)/i) || text.match(/Placa[:\s]*([A-Z0-9]+)/i);
+    if (placaMatch) data.placa = placaMatch[1].trim().toUpperCase();
+
+    // Marca (evitando el modelo)
+    var marcaMatch = text.match(/Marca[:\s]*([^\n]+?)(?=\s+Modelo|$)/i);
+    if (marcaMatch) data.marca = marcaMatch[1].trim();
+
+    // CGT (sin las letras CGT)
+    var cgtMatch = text.match(/CGT\s*(\d+)/i);
+    if (cgtMatch) data.cgt = cgtMatch[1].trim();
+    else {
+        // Fallback si el OCR no leyó "CGT" pero sí un número largo
+        var fallbackCgt = text.match(/\b(\d{10,15})\b/);
+        if (fallbackCgt && /CGT/i.test(text)) data.cgt = fallbackCgt[1];
+    }
+
+    // Vencimiento
+    var venceMatch = text.match(/Fecha\s*De\s*Vencimiento[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i) || text.match(/Vencimiento[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
+    if (venceMatch) data.venceCgt = venceMatch[1].trim();
+
+    // Propietario
+    var propMatch = text.match(/Nombre\s*y\s*apellido[s]?[:\s]*([\s\S]+?)(?=Tipo de documento|N[°o] de documento|$)/i);
+    if (propMatch) data.propietario = propMatch[1].trim();
+
+    // CI / RIF
+    var tipoDoc = text.match(/Tipo\s*de\s*documento[:\s]*([VEJ])/i);
+    var numDoc = text.match(/N[°o]\s*de\s*documento[:\s]*([0-9\.]+)/i);
+    if (tipoDoc && numDoc) {
+        var prefix = tipoDoc[1].toUpperCase();
+        var num = numDoc[1].replace(/[\.\s]/g, '');
+        data.ciPropietario = prefix + '-' + num;
+    } else if (numDoc) {
+        data.ciPropietario = 'J-' + numDoc[1].replace(/[\.\s]/g, '');
+    } else {
+        var rifMatch = text.match(/([VEJ])[-\s]*(\d{7,9})/i);
+        if(rifMatch) data.ciPropietario = rifMatch[1].toUpperCase() + '-' + rifMatch[2];
+    }
+
+    return data;
+}
+
+// Parser genérico (WhatsApp, texto pegado)
 function parsePastedText(text){
     var data = {}, context = null;
     var lines = String(text||'').split(/\r?\n/);
@@ -444,17 +493,74 @@ function parsePastedText(text){
             var keys = Object.keys(labelMap);
             for(var k=0;k<keys.length;k++){ if(label.indexOf(keys[k]) > -1){ field = labelMap[keys[k]]; break; } }
         }
-        if(field && !data[field]) data[field] = value;
+        if(field) {
+            if(field === 'cgt') value = value.replace(/CGT/gi, '').trim();
+            if(!data[field]) data[field] = value;
+        }
     }
     return data;
 }
-function fillFromText(text){
-    var data = parsePastedText(text);
-    if(!Object.keys(data).length){ toast('⚠️ No se reconoció información válida'); return; }
+
+// Parser para código QR
+function parseQRText(qrText) {
+    if (!qrText) return {};
+    try {
+        if (qrText.trim().startsWith('{')) {
+            var json = JSON.parse(qrText);
+            var data = {};
+            if(json.placa) data.placa = json.placa;
+            if(json.marca) data.marca = json.marca;
+            if(json.cgt) data.cgt = json.cgt.toString().replace(/CGT/i, '');
+            if(json.venceCgt || json.vencimiento) data.venceCgt = json.venceCgt || json.vencimiento;
+            if(json.propietario) data.propietario = json.propietario;
+            if(json.ciPropietario || json.rif || json.cedula) data.ciPropietario = json.ciPropietario || json.rif || json.cedula;
+            return data;
+        }
+        if (qrText.includes('?')) {
+            var url = new URL(qrText);
+            var data = {};
+            if(url.searchParams.has('placa')) data.placa = url.searchParams.get('placa');
+            if(url.searchParams.has('cgt')) data.cgt = url.searchParams.get('cgt').replace(/CGT/i, '');
+            return data;
+        }
+    } catch(e) {}
+    return {};
+}
+
+function fillFromText(text, qrText){
+    text = text || '';
+    qrText = qrText || '';
+    
+    var rawTextToParse = text + '\n' + qrText;
+    var qrData = parseQRText(qrText);
+    var genericData = parsePastedText(rawTextToParse);
+    var cgtData = parseCGTText(rawTextToParse);
+    
+    var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT\s*\d+/i.test(text) || Object.keys(cgtData).length > 0 || Object.keys(qrData).length > 0;
+    
+    var data = {};
+    if (isCGTDocument) {
+        // Si es un CGT, solo llenamos lo estrictamente solicitado
+        data = Object.assign({}, cgtData, qrData);
+    } else {
+        // Si es un texto genérico (WhatsApp)
+        data = genericData;
+    }
+    
+    // Fallback de emergencia
+    if (!Object.keys(data).length || Object.values(data).every(v => !v)) {
+        if (Object.keys(genericData).length) data = genericData;
+        else {
+            toast('⚠️ No se reconoció información válida');
+            return;
+        }
+    }
+
     switchView('form');
     clearFormSilent();
     $('f_ciPropPrefijo').value = 'V-';
     $('f_ciChofPrefijo').value = 'V-';
+    
     var filled = 0;
     if(data.placa){ $('f_placa').value = data.placa.toUpperCase(); filled++; }
     if(data.cajas){ var cz = String(data.cajas).replace(/[^0-9]/g,''); if(cz){ $('f_cajas').value = cz; filled++; } }
@@ -475,7 +581,11 @@ function fillFromText(text){
     if(data.ciPropietario){ applyCIValue('f_ciPropPrefijo','f_ciPropietario', data.ciPropietario); filled++; }
     if(data.chofer){ $('f_chofer').value = data.chofer; filled++; }
     if(data.ciChofer){ applyCIValue('f_ciChofPrefijo','f_ciChofer', data.ciChofer); filled++; }
-    if(data.cgt){ $('f_cgt').value = data.cgt; filled++; }
+    if(data.cgt){ 
+        var cgtClean = String(data.cgt).replace(/CGT/gi, '').trim(); 
+        $('f_cgt').value = cgtClean; 
+        filled++; 
+    }
     if(data.venceCgt){ var iso = parseDateValue(data.venceCgt); if(iso){ $('f_vence').value = iso; filled++; } }
     if(data.marca){ $('f_marca').value = data.marca; filled++; }
     if(data.destino){ $('f_destino').value = data.destino; filled++; }
@@ -487,6 +597,7 @@ function fillFromText(text){
     if(data.origen){ $('f_origen').value = data.origen; filled++; }
     if(data.productor){ $('f_productor').value = data.productor; filled++; }
     if(data.observacion){ $('f_observacion').value = data.observacion; filled++; }
+    
     checkCGT();
     var same = !!( $('f_propietario').value && $('f_chofer').value &&
         $('f_propietario').value === $('f_chofer').value &&
@@ -495,11 +606,12 @@ function fillFromText(text){
         $('f_ciPropPrefijo').value !== 'J-' );
     $('f_mismoProp').checked = same;
     toggleMismoProp();
+    
     if(filled > 0) toast('✓ ' + filled + ' campo' + (filled>1?'s':'') + ' rellenado' + (filled>1?'s':''));
     else toast('⚠️ No se reconoció información válida');
 }
 
-/* === ESCANEO DE IMAGEN / PDF CON OCR ============================= */
+/* === ESCANEO DE IMAGEN / PDF CON OCR Y QR ========================= */
 function scanDocument(){
     var inp = document.getElementById('scanInput');
     if(inp) inp.click();
@@ -514,18 +626,18 @@ async function handleScanFile(event){
     }
     showLoading('Procesando documento…', 'Preparando');
     try{
-        var text = '';
+        var result = { ocr: '', qr: '' };
         if(file.type === 'application/pdf'){
-            text = await extractPdfText(file);
+            result = await extractPdfText(file);
         }else{
-            text = await extractImageText(file);
+            result = await extractImageText(file);
         }
         hideLoading();
-        if(!text || !text.trim()){
-            toast('⚠️ No se detectó texto en el documento');
+        if((!result.ocr || !result.ocr.trim()) && (!result.qr || !result.qr.trim())){
+            toast('⚠️ No se detectó texto ni código QR en el documento');
             return;
         }
-        fillFromText(text);
+        fillFromText(result.ocr, result.qr);
     }catch(e){
         hideLoading();
         console.error(e);
@@ -534,7 +646,31 @@ async function handleScanFile(event){
 }
 async function extractImageText(file){
     var T = await loadTesseract();
-    updateLoadingSub('Reconociendo texto…');
+    var jsQR = await loadJsQR();
+    updateLoadingSub('Reconociendo texto y QR…');
+    
+    // QR extraction
+    var qrText = '';
+    try {
+        var img = await new Promise((resolve, reject) => {
+            var i = new Image();
+            i.onload = () => resolve(i);
+            i.onerror = reject;
+            i.src = URL.createObjectURL(file);
+        });
+        var canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        var code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) qrText = code.data;
+    } catch(e) {
+        console.warn('QR extraction failed', e);
+    }
+    
+    // OCR
     var result = await T.recognize(file, 'spa', {
         logger: function(m){
             if(m.status === 'recognizing text'){
@@ -544,22 +680,44 @@ async function extractImageText(file){
             }
         }
     });
-    return result.data.text;
+    return { ocr: result.data.text, qr: qrText };
 }
 async function extractPdfText(file){
     var pdfjsLib = await loadPdfJs();
+    var jsQR = await loadJsQR();
     updateLoadingSub('Leyendo PDF…');
     var buf = await file.arrayBuffer();
     var pdf = await pdfjsLib.getDocument({data: buf}).promise;
     var text = '';
+    var qrText = '';
     var maxPages = Math.min(pdf.numPages, 3);
+    
     for(var i=1; i<=maxPages; i++){
         var page = await pdf.getPage(i);
         var content = await page.getTextContent();
         var pageText = content.items.map(function(it){return it.str;}).join(' ').trim();
         if(pageText) text += pageText + '\n';
     }
-    if(text.trim()) return text;
+    
+    // Extract QR from page 1
+    try {
+        var page1 = await pdf.getPage(1);
+        var viewport = page1.getViewport({scale: 2});
+        var canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        var ctx = canvas.getContext('2d');
+        await page1.render({canvasContext: ctx, viewport: viewport}).promise;
+        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        var code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) qrText = code.data;
+    } catch(e) {
+        console.warn('QR extraction from PDF failed', e);
+    }
+
+    if(text.trim()) return { ocr: text, qr: qrText };
+    
+    // If no text, do OCR on page 1
     updateLoadingSub('Documento escaneado, aplicando OCR…');
     var page1 = await pdf.getPage(1);
     var viewport = page1.getViewport({scale: 2});
@@ -568,6 +726,16 @@ async function extractPdfText(file){
     canvas.height = viewport.height;
     var ctx = canvas.getContext('2d');
     await page1.render({canvasContext: ctx, viewport: viewport}).promise;
+    
+    // QR again just in case
+    if(!qrText) {
+        try {
+            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) qrText = code.data;
+        } catch(e) {}
+    }
+
     var T = await loadTesseract();
     var result = await T.recognize(canvas, 'spa', {
         logger: function(m){
@@ -576,7 +744,7 @@ async function extractPdfText(file){
             }
         }
     });
-    return result.data.text;
+    return { ocr: result.data.text, qr: qrText };
 }
 function loadTesseract(){
     if(window.Tesseract) return Promise.resolve(window.Tesseract);
@@ -598,6 +766,16 @@ function loadPdfJs(){
             resolve(window.pdfjsLib);
         };
         s.onerror = function(){ reject(new Error('No se pudo cargar PDF.js')); };
+        document.head.appendChild(s);
+    });
+}
+function loadJsQR() {
+    if(window.jsQR) return Promise.resolve(window.jsQR);
+    return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+        s.onload = () => resolve(window.jsQR);
+        s.onerror = () => reject(new Error('No se pudo cargar el lector QR'));
         document.head.appendChild(s);
     });
 }
