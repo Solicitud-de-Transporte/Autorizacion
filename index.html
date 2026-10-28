@@ -393,54 +393,49 @@ function applyCIValue(prefixId, inputId, value){
     inp.value = (prefix === 'J-') ? clean : formatCI(clean);
 }
 
-// Parser específico para certificados CGT
+// Parser mejorado para certificados CGT
 function parseCGTText(text) {
     var data = {};
-    text = String(text).replace(/\r/g, '');
+    // Normalizar texto para OCR
+    var cleanText = text.replace(/\r/g, '').replace(/\u00A0/g, ' ');
 
-    // Placa
-    var placaMatch = text.match(/Placa\/Matr[íi]cula[:\s]*([A-Z0-9]+)/i) || text.match(/Placa[:\s]*([A-Z0-9]+)/i);
+    // Placa: busca "Placa/Matrícula" o "Placa" y toma el siguiente bloque alfanumérico
+    var placaMatch = cleanText.match(/(?:Placa\/Matr[íi]cula|Placa\/Matricula|Placa)[:\s\n]*([A-Z0-9]{6,8})/i);
     if (placaMatch) data.placa = placaMatch[1].trim().toUpperCase();
 
-    // Marca (evitando el modelo)
-    var marcaMatch = text.match(/Marca[:\s]*([^\n]+?)(?=\s+Modelo|$)/i);
+    // Marca: busca "Marca:" y toma hasta antes de "Modelo"
+    var marcaMatch = cleanText.match(/Marca[:\s\n]*([^\n]+?)(?=\n|Modelo|Tipo|$)/i);
     if (marcaMatch) data.marca = marcaMatch[1].trim();
 
-    // CGT (sin las letras CGT)
-    var cgtMatch = text.match(/CGT\s*(\d+)/i);
-    if (cgtMatch) data.cgt = cgtMatch[1].trim();
-    else {
-        // Fallback si el OCR no leyó "CGT" pero sí un número largo
-        var fallbackCgt = text.match(/\b(\d{10,15})\b/);
-        if (fallbackCgt && /CGT/i.test(text)) data.cgt = fallbackCgt[1];
+    // CGT: busca "CGT" seguido de números
+    var cgtMatch = cleanText.match(/CGT[:\s]*([0-9]{10,15})/i) || cleanText.match(/\b(CGT\d+)\b/i);
+    if (cgtMatch) {
+        data.cgt = cgtMatch[1].replace(/CGT/i, '').trim();
     }
 
     // Vencimiento
-    var venceMatch = text.match(/Fecha\s*De\s*Vencimiento[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i) || text.match(/Vencimiento[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
+    var venceMatch = cleanText.match(/Fecha\s*De\s*Vencimiento[:\s\n]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i) || cleanText.match(/Vencimiento[:\s\n]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
     if (venceMatch) data.venceCgt = venceMatch[1].trim();
 
-    // Propietario
-    var propMatch = text.match(/Nombre\s*y\s*apellido[s]?[:\s]*([\s\S]+?)(?=Tipo de documento|N[°o] de documento|$)/i);
+    // Propietario: busca "Nombre y apellido" y toma todo hasta "Tipo de documento" o "N°"
+    var propMatch = cleanText.match(/Nombre\s*y\s*apellido[s]?[:\s\n]*([\s\S]+?)(?=\n*Tipo\s*de\s*documento|\n*N[°o]\s*de\s*documento|$)/i);
     if (propMatch) data.propietario = propMatch[1].trim();
 
-    // CI / RIF
-    var tipoDoc = text.match(/Tipo\s*de\s*documento[:\s]*([VEJ])/i);
-    var numDoc = text.match(/N[°o]\s*de\s*documento[:\s]*([0-9\.]+)/i);
-    if (tipoDoc && numDoc) {
-        var prefix = tipoDoc[1].toUpperCase();
-        var num = numDoc[1].replace(/[\.\s]/g, '');
-        data.ciPropietario = prefix + '-' + num;
-    } else if (numDoc) {
-        data.ciPropietario = 'J-' + numDoc[1].replace(/[\.\s]/g, '');
-    } else {
-        var rifMatch = text.match(/([VEJ])[-\s]*(\d{7,9})/i);
-        if(rifMatch) data.ciPropietario = rifMatch[1].toUpperCase() + '-' + rifMatch[2];
+    // C.I. / RIF: busca Tipo de documento y N° de documento
+    var tipoDocMatch = cleanText.match(/Tipo\s*de\s*documento[:\s\n]*([VEJ])/i);
+    var numDocMatch = cleanText.match(/N[°o]\s*de\s*documento[:\s\n]*([0-9\.]+)/i);
+    
+    if (tipoDocMatch && numDocMatch) {
+        data.ciPropietario = tipoDocMatch[1].toUpperCase() + '-' + numDocMatch[1].replace(/[\.\s]/g, '');
+    } else if (numDocMatch) {
+        var isJ = /J/i.test(cleanText) ? 'J-' : 'V-';
+        data.ciPropietario = isJ + numDocMatch[1].replace(/[\.\s]/g, '');
     }
 
     return data;
 }
 
-// Parser genérico (WhatsApp, texto pegado)
+// Parser genérico para WhatsApp
 function parsePastedText(text){
     var data = {}, context = null;
     var lines = String(text||'').split(/\r?\n/);
@@ -501,7 +496,6 @@ function parsePastedText(text){
     return data;
 }
 
-// Parser para código QR
 function parseQRText(qrText) {
     if (!qrText) return {};
     try {
@@ -536,18 +530,22 @@ function fillFromText(text, qrText){
     var genericData = parsePastedText(rawTextToParse);
     var cgtData = parseCGTText(rawTextToParse);
     
-    var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT\s*\d+/i.test(text) || Object.keys(cgtData).length > 0 || Object.keys(qrData).length > 0;
+    // Si el documento es un CGT, ignoramos el parser genérico para no llenar datos erróneos
+    var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT[:\s]*\d{10,}/i.test(text) || Object.keys(cgtData).length > 0 || /CGT/i.test(qrText);
     
     var data = {};
     if (isCGTDocument) {
-        // Si es un CGT, solo llenamos lo estrictamente solicitado
-        data = Object.assign({}, cgtData, qrData);
+        data = Object.assign({}, cgtData);
+        for (var key in qrData) {
+            if (!data[key] || data[key].trim() === '') {
+                data[key] = qrData[key];
+            }
+        }
     } else {
-        // Si es un texto genérico (WhatsApp)
         data = genericData;
     }
     
-    // Fallback de emergencia
+    // Fallback
     if (!Object.keys(data).length || Object.values(data).every(v => !v)) {
         if (Object.keys(genericData).length) data = genericData;
         else {
@@ -588,15 +586,19 @@ function fillFromText(text, qrText){
     }
     if(data.venceCgt){ var iso = parseDateValue(data.venceCgt); if(iso){ $('f_vence').value = iso; filled++; } }
     if(data.marca){ $('f_marca').value = data.marca; filled++; }
-    if(data.destino){ $('f_destino').value = data.destino; filled++; }
-    if(data.estado){ $('f_estado').value = data.estado; filled++; }
-    if(data.municipio){ $('f_municipio').value = data.municipio; filled++; }
-    if(data.parroquia){ $('f_parroquia').value = data.parroquia; filled++; }
-    if(data.recibe){ $('f_recibe').value = data.recibe; filled++; }
-    if(data.telefono){ $('f_telefono').value = data.telefono; filled++; }
-    if(data.origen){ $('f_origen').value = data.origen; filled++; }
-    if(data.productor){ $('f_productor').value = data.productor; filled++; }
-    if(data.observacion){ $('f_observacion').value = data.observacion; filled++; }
+    
+    // Solo llenamos los demás si NO es un CGT
+    if (!isCGTDocument) {
+        if(data.destino){ $('f_destino').value = data.destino; filled++; }
+        if(data.estado){ $('f_estado').value = data.estado; filled++; }
+        if(data.municipio){ $('f_municipio').value = data.municipio; filled++; }
+        if(data.parroquia){ $('f_parroquia').value = data.parroquia; filled++; }
+        if(data.recibe){ $('f_recibe').value = data.recibe; filled++; }
+        if(data.telefono){ $('f_telefono').value = data.telefono; filled++; }
+        if(data.origen){ $('f_origen').value = data.origen; filled++; }
+        if(data.productor){ $('f_productor').value = data.productor; filled++; }
+        if(data.observacion){ $('f_observacion').value = data.observacion; filled++; }
+    }
     
     checkCGT();
     var same = !!( $('f_propietario').value && $('f_chofer').value &&
@@ -644,37 +646,58 @@ async function handleScanFile(event){
         toast('⚠️ Error al procesar el documento');
     }
 }
+
+// Intenta leer QR nativo o con jsQR
+async function detectQRFromCanvas(canvas) {
+    // 1. Intentar con BarcodeDetector nativo (más rápido y preciso en móviles)
+    if ('BarcodeDetector' in window) {
+        try {
+            const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+            const barcodes = await barcodeDetector.detect(canvas);
+            if (barcodes.length > 0) return barcodes[0].rawValue;
+        } catch(e) { console.warn('BarcodeDetector falló', e); }
+    }
+    
+    // 2. Fallback a jsQR
+    try {
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+        if (code) return code.data;
+    } catch(e) { console.warn('jsQR falló', e); }
+    
+    return '';
+}
+
 async function extractImageText(file){
     var T = await loadTesseract();
     var jsQR = await loadJsQR();
-    updateLoadingSub('Reconociendo texto y QR…');
     
-    // QR extraction
-    var qrText = '';
-    try {
-        var img = await new Promise((resolve, reject) => {
-            var i = new Image();
-            i.onload = () => resolve(i);
-            i.onerror = reject;
-            i.src = URL.createObjectURL(file);
-        });
-        var canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        var code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code) qrText = code.data;
-    } catch(e) {
-        console.warn('QR extraction failed', e);
-    }
+    updateLoadingSub('Preparando imagen…');
+    // Preprocesar imagen (escalar para mejorar rendimiento y lectura)
+    var img = await new Promise((resolve, reject) => {
+        var i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = reject;
+        i.src = URL.createObjectURL(file);
+    });
     
-    // OCR
-    var result = await T.recognize(file, 'spa', {
+    var canvas = document.createElement('canvas');
+    var maxDim = 2000; // Tamaño óptimo para OCR y QR
+    var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+    updateLoadingSub('Buscando código QR…');
+    var qrText = await detectQRFromCanvas(canvas);
+    
+    updateLoadingSub('Reconociendo texto (OCR)…');
+    var result = await T.recognize(canvas, 'spa', {
         logger: function(m){
             if(m.status === 'recognizing text'){
-                updateLoadingSub(Math.round((m.progress||0)*100) + '%');
+                updateLoadingSub('Leyendo texto: ' + Math.round((m.progress||0)*100) + '%');
             }else if(m.status){
                 updateLoadingSub(m.status);
             }
@@ -682,6 +705,7 @@ async function extractImageText(file){
     });
     return { ocr: result.data.text, qr: qrText };
 }
+
 async function extractPdfText(file){
     var pdfjsLib = await loadPdfJs();
     var jsQR = await loadJsQR();
@@ -699,7 +723,8 @@ async function extractPdfText(file){
         if(pageText) text += pageText + '\n';
     }
     
-    // Extract QR from page 1
+    // Extraer QR de la página 1
+    updateLoadingSub('Buscando código QR…');
     try {
         var page1 = await pdf.getPage(1);
         var viewport = page1.getViewport({scale: 2});
@@ -708,16 +733,14 @@ async function extractPdfText(file){
         canvas.height = viewport.height;
         var ctx = canvas.getContext('2d');
         await page1.render({canvasContext: ctx, viewport: viewport}).promise;
-        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        var code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code) qrText = code.data;
+        qrText = await detectQRFromCanvas(canvas);
     } catch(e) {
         console.warn('QR extraction from PDF failed', e);
     }
 
     if(text.trim()) return { ocr: text, qr: qrText };
     
-    // If no text, do OCR on page 1
+    // Si no hay texto, aplicar OCR
     updateLoadingSub('Documento escaneado, aplicando OCR…');
     var page1 = await pdf.getPage(1);
     var viewport = page1.getViewport({scale: 2});
@@ -727,25 +750,17 @@ async function extractPdfText(file){
     var ctx = canvas.getContext('2d');
     await page1.render({canvasContext: ctx, viewport: viewport}).promise;
     
-    // QR again just in case
-    if(!qrText) {
-        try {
-            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var code = jsQR(imageData.data, imageData.width, imageData.height);
-            if (code) qrText = code.data;
-        } catch(e) {}
-    }
-
     var T = await loadTesseract();
     var result = await T.recognize(canvas, 'spa', {
         logger: function(m){
             if(m.status === 'recognizing text'){
-                updateLoadingSub(Math.round((m.progress||0)*100) + '%');
+                updateLoadingSub('Leyendo texto: ' + Math.round((m.progress||0)*100) + '%');
             }
         }
     });
     return { ocr: result.data.text, qr: qrText };
 }
+
 function loadTesseract(){
     if(window.Tesseract) return Promise.resolve(window.Tesseract);
     return new Promise(function(resolve, reject){
