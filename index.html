@@ -20,9 +20,15 @@ header{background:linear-gradient(135deg,var(--primary),var(--primary-light));co
 h1{font-size:1.45rem;font-weight:700}
 .subtitle{font-size:.82rem;opacity:.85;margin-top:2px}
 .author-badge{display:inline-block;margin-top:10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:20px;font-size:.72rem}
-.tabs{display:flex;gap:8px;margin-top:18px}
-.tab{flex:1;padding:11px 8px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
+.tabs-row{display:flex;gap:8px;margin-top:18px;align-items:center}
+.tabs{display:flex;gap:8px;flex:1;min-width:0}
+.tab{flex:1;padding:11px 8px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab.active{background:#fff;color:var(--primary)}
+.icon-actions{display:flex;gap:6px;flex-shrink:0}
+.icon-btn{width:44px;height:44px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .2s;-webkit-tap-highlight-color:transparent}
+.icon-btn:hover{background:rgba(255,255,255,.28)}
+.icon-btn:active{transform:scale(.94)}
+@media(max-width:400px){.icon-btn{width:40px;height:40px;font-size:1rem}.tab{padding:10px 6px;font-size:.78rem}}
 main{margin-top:-46px;position:relative;z-index:3}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px 20px;margin-bottom:20px}
 .card-title{font-size:1.05rem;font-weight:700;color:var(--primary);margin-bottom:4px}
@@ -87,7 +93,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 .detail-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:3px}
 .detail-value{font-size:.88rem;font-weight:600;word-break:break-word}
 @media(max-width:480px){.detail-grid{grid-template-columns:1fr}}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:12px 22px;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;white-space:nowrap}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:12px 22px;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 .toast.show{opacity:1}
 .install-banner{display:none;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-radius:12px;padding:14px 16px;margin-bottom:16px;align-items:center;gap:12px}
 .install-banner.show{display:flex}
@@ -100,7 +106,6 @@ main{margin-top:-46px;position:relative;z-index:3}
 .nav-badge{position:absolute;top:4px;right:calc(50% - 24px);background:var(--danger);color:#fff;font-size:.6rem;font-weight:800;min-width:17px;height:17px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .hidden{display:none!important}
 .footer-note{text-align:center;font-size:.7rem;color:var(--text-light);margin-top:24px;line-height:1.7}
-/* === Nuevos estilos: check "Mismo propietario" + autocompletado de Destino === */
 .field label.check-inline{display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0;font-weight:600;font-size:.82rem}
 .field label.check-inline input{width:auto;padding:0;margin:0;border:none;background:none;accent-color:var(--primary);transform:scale(1.15)}
 .field label.check-inline input:focus{box-shadow:none;border:none;background:none}
@@ -110,21 +115,35 @@ main{margin-top:-46px;position:relative;z-index:3}
 .suggestion-item{padding:10px 13px;font-size:.88rem;cursor:pointer;border-bottom:1px solid #f0f4f8;color:var(--text)}
 .suggestion-item:last-child{border-bottom:none}
 .suggestion-item:hover,.suggestion-item.active{background:#eef2f7}
+.loading-overlay{position:fixed;inset:0;background:rgba(10,25,40,.78);z-index:150;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;gap:18px;padding:24px;text-align:center}
+.loading-overlay.show{display:flex}
+.spinner{width:52px;height:52px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-weight:700;font-size:.98rem}
+.loading-sub{font-size:.82rem;opacity:.85;min-height:1.2em}
 </style>
 </head>
 <body>
 <header><div class="header-content">
 <div class="logo-row"><div class="logo-icon">🐟</div><div><h1>Insopesca El Morro</h1><div class="subtitle">Sistema de Solicitud de Autorización de Transporte</div></div></div>
 <span class="author-badge">© Emmanuel Manosalva</span>
+<div class="tabs-row">
 <div class="tabs">
 <button class="tab active" id="tabForm" onclick="switchView('form')">📝 Nueva Solicitud</button>
-<button class="tab" id="tabHistory" onclick="switchView('history')">📋 Historial <span id="histCountBadge" style="background:#c0392b;color:#fff;font-size:.65rem;padding:1px 7px;border-radius:10px;margin-left:4px">0</span></button>
-</div></div></header>
+<button class="tab" id="tabHistory" onclick="switchView('history')">📋 Historial <span id="histCountBadge" style="background:#c0392b;color:#fff;font-size:.65rem;padding:1px 7px;border-radius:10px;margin-left:2px">0</span></button>
+</div>
+<div class="icon-actions">
+<button class="icon-btn" onclick="pasteData()" title="Pegar datos del portapapeles">📋</button>
+<button class="icon-btn" onclick="scanDocument()" title="Escanear imagen o PDF">📷</button>
+</div>
+</div>
+</div></header>
+<input type="file" id="scanInput" accept="image/*,application/pdf" style="display:none" onchange="handleScanFile(event)">
 <main class="container">
 <div class="install-banner" id="installBanner"><span style="font-size:1.4rem">📲</span><div class="txt">Instala la app en tu dispositivo</div><button onclick="installApp()">Instalar</button></div>
 <div id="viewForm"><div class="card">
 <div class="card-title">📋 Solicitud de Autorización</div>
-<div class="card-sub">Complete los datos. Los campos con <span style="color:#c0392b">*</span> son obligatorios.</div>
+<div class="card-sub">Complete los datos. Los campos con <span style="color:#c0392b">*</span> son obligatorios. Usa <strong>📋</strong> para pegar o <strong>📷</strong> para escanear.</div>
 <form id="authForm" autocomplete="off" onsubmit="return false">
 <div class="form-section"><div class="section-label">🗓️ Fecha</div>
 <div class="field"><label>📌 Fecha <span class="req">*</span></label><input type="text" id="f_fecha" readonly style="background:#eef2f7;font-weight:700;color:var(--primary)"></div>
@@ -199,16 +218,15 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()"><div class="modal">
 <div class="modal-header"><div class="modal-title" id="modalTitle">Detalle</div><button class="modal-close" onclick="closeModal()">✕</button></div>
 <div id="modalBody"></div></div></div>
+<div class="loading-overlay" id="loadingOverlay">
+<div class="spinner"></div>
+<div class="loading-text" id="loadingText">Procesando documento…</div>
+<div class="loading-sub" id="loadingSub">Iniciando</div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
 var NL=String.fromCharCode(10);
 var PIN='\uD83D\uDCCC';
-/* =========================================================
-   LISTA DE EMPRESAS (Destino) - ordenada alfabéticamente.
-   Para agregar una nueva empresa en el futuro, añada un
-   objeto con: label, estado, municipio y parroquia.
-   El campo "label" es el que se muestra y se guarda.
-   ========================================================= */
 var EMPRESAS = [
 {label:'Contupesca, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
 {label:'Inv. Buenaventura 2014, C.A., Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
@@ -229,14 +247,7 @@ function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=
 var DB_KEY='insopesca_history_v1';
 function getHistory(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[]}catch(e){return[]}}
 function setHistory(h){localStorage.setItem(DB_KEY,JSON.stringify(h));updateBadges();}
-function migrateHistory(){
-var h=getHistory(),changed=false;
-h.forEach(function(r){
-if(r.especie===undefined){r.especie='Sardina';changed=true;}
-if(r.presentacion===undefined){r.presentacion=r.sardina||'';changed=true;}
-});
-if(changed)setHistory(h);
-}
+function migrateHistory(){var h=getHistory(),changed=false;h.forEach(function(r){if(r.especie===undefined){r.especie='Sardina';changed=true;}if(r.presentacion===undefined){r.presentacion=r.sardina||'';changed=true;}});if(changed)setHistory(h);}
 function updateBadges(){var n=getHistory().length;document.getElementById('navBadge').textContent=n;document.getElementById('histCountBadge').textContent=n;}
 function $(id){return document.getElementById(id);}
 function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show')},2600);}
@@ -280,7 +291,6 @@ $('f_productor').value=d.productor||'';$('f_observacion').value=d.observacion||'
 function setCI(prefixId,inputId,full){var pre=$(prefixId),inp=$(inputId);var p='V-',num=full||'';
 if(num.indexOf('J-')===0){p='J-';num=num.slice(2);}else if(num.indexOf('E-')===0){p='E-';num=num.slice(2);}else if(num.indexOf('V-')===0){p='V-';num=num.slice(2);}
 pre.value=p;var raw=num.replace(/\D/g,'');inp.value=p==='J-'?raw:formatCI(raw);}
-/* === Sincronización "Mismo propietario" === */
 function syncMismoProp(){
 if(!$('f_mismoProp').checked)return;
 if($('f_ciPropPrefijo').value==='J-'){$('f_mismoProp').checked=false;toggleMismoProp();return;}
@@ -303,7 +313,6 @@ $('f_chofer').classList.remove('readonly-input');$('f_ciChofer').classList.remov
 $('f_propietario').addEventListener('input',syncMismoProp);
 $('f_ciPropietario').addEventListener('input',syncMismoProp);
 $('f_ciPropPrefijo').addEventListener('change',syncMismoProp);
-/* === Autocompletado de Destino === */
 function renderDestinoSuggestions(){
 var q=$('f_destino').value.trim().toLowerCase();
 var list=$('destinoSuggestions');
@@ -345,6 +354,267 @@ if(i<L.length-1)m+=NL;
 }
 return m;}
 function sendWhatsApp(){if(!validateForWhatsApp())return;var data=collectForm();window.open('https://wa.me/?text='+encodeURIComponent(buildMessage(data)),'_blank');}
+
+/* === PEGADO DIRECTO DESDE PORTAPAPELES ============================ */
+async function pasteData(){
+    try{
+        if(!navigator.clipboard || !navigator.clipboard.readText){
+            toast('⚠️ Tu navegador no permite leer el portapapeles');
+            return;
+        }
+        var text = await navigator.clipboard.readText();
+        if(!text || !text.trim()){ toast('📋 El portapapeles está vacío'); return; }
+        fillFromText(text);
+    }catch(e){
+        toast('⚠️ Permite el acceso al portapapeles e intenta de nuevo');
+    }
+}
+function parseDateValue(v){
+    if(!v) return '';
+    v = String(v).trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+    var m = v.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+    if(m){
+        var dd = m[1].padStart(2,'0'), mm = m[2].padStart(2,'0'), yyyy = m[3];
+        if(yyyy.length === 2) yyyy = '20' + yyyy;
+        return yyyy + '-' + mm + '-' + dd;
+    }
+    return '';
+}
+function applyCIValue(prefixId, inputId, value){
+    var pre = $(prefixId), inp = $(inputId);
+    var str = String(value||'').trim().toUpperCase();
+    var prefix = 'V-';
+    if(str.charAt(0) === 'J'){ prefix = 'J-'; str = str.slice(1).replace(/^[\-\s\.]+/,''); }
+    else if(str.charAt(0) === 'E'){ prefix = 'E-'; str = str.slice(1).replace(/^[\-\s\.]+/,''); }
+    else if(str.charAt(0) === 'V'){ prefix = 'V-'; str = str.slice(1).replace(/^[\-\s\.]+/,''); }
+    var clean = str.replace(/[^0-9A-Z]/gi,'');
+    pre.value = prefix;
+    inp.value = (prefix === 'J-') ? clean : formatCI(clean);
+}
+function parsePastedText(text){
+    var data = {}, context = null;
+    var lines = String(text||'').split(/\r?\n/);
+    var labelMap = {
+        'placa':'placa','placa del vehiculo':'placa','numero de placa':'placa',
+        'cajas':'cajas','cantidad de cajas':'cajas','numero de cajas':'cajas',
+        'n cajas':'cajas','num cajas':'cajas','cant cajas':'cajas',
+        'especie':'especie','tipo de pescado':'especie','pescado':'especie',
+        'presentacion':'presentacion','presentacion del producto':'presentacion','corte':'presentacion',
+        'propietario':'propietario','nombre del propietario':'propietario',
+        'chofer':'chofer','conductor':'chofer','nombre del chofer':'chofer','nombre del conductor':'chofer',
+        'cgt':'cgt','n cgt':'cgt','n de cgt':'cgt','num cgt':'cgt','numero cgt':'cgt',
+        'numero de cgt':'cgt','cgt n':'cgt',
+        'vence cgt':'venceCgt','vence':'venceCgt','vencimiento':'venceCgt',
+        'vencimiento cgt':'venceCgt','fecha de vencimiento':'venceCgt','fecha de vencimiento cgt':'venceCgt',
+        'marca':'marca','marca del vehiculo':'marca',
+        'destino':'destino','empresa destino':'destino',
+        'estado':'estado','municipio':'municipio','parroquia':'parroquia',
+        'recibe':'recibe','quien recibe':'recibe','nombre de quien recibe':'recibe','receptor':'recibe',
+        'telefono':'telefono','tlf':'telefono','tel':'telefono','celular':'telefono','numero de telefono':'telefono',
+        'origen':'origen','puerto':'origen','productor':'productor','maquina':'productor','picadora':'productor',
+        'observacion':'observacion','observaciones':'observacion','nota':'observacion','notas':'observacion'
+    };
+    for(var i=0;i<lines.length;i++){
+        var line = lines[i];
+        var c = line.indexOf(':');
+        if(c === -1) continue;
+        var labelRaw = line.slice(0,c);
+        var value = line.slice(c+1).replace(/\*/g,'').trim();
+        if(!value) continue;
+        var label = labelRaw.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g,' ')
+            .replace(/\s+/g,' ').trim().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        if(!label) continue;
+        var isCI = /^(c\s*i|cedula|rif|documento)\b/.test(label);
+        var isProp = /propietario/.test(label);
+        var isChof = /chofer|conductor/.test(label);
+        if(isCI){
+            if(isProp) data.ciPropietario = value;
+            else if(isChof) data.ciChofer = value;
+            else if(context === 'propietario') data.ciPropietario = value;
+            else if(context === 'chofer') data.ciChofer = value;
+            else{ if(!data.ciPropietario) data.ciPropietario = value; else if(!data.ciChofer) data.ciChofer = value; }
+            continue;
+        }
+        if(isProp){ data.propietario = value; context = 'propietario'; continue; }
+        if(isChof){ data.chofer = value; context = 'chofer'; continue; }
+        var field = labelMap[label];
+        if(!field){
+            var keys = Object.keys(labelMap);
+            for(var k=0;k<keys.length;k++){ if(label.indexOf(keys[k]) > -1){ field = labelMap[keys[k]]; break; } }
+        }
+        if(field && !data[field]) data[field] = value;
+    }
+    return data;
+}
+function fillFromText(text){
+    var data = parsePastedText(text);
+    if(!Object.keys(data).length){ toast('⚠️ No se reconoció información válida'); return; }
+    switchView('form');
+    clearFormSilent();
+    $('f_ciPropPrefijo').value = 'V-';
+    $('f_ciChofPrefijo').value = 'V-';
+    var filled = 0;
+    if(data.placa){ $('f_placa').value = data.placa.toUpperCase(); filled++; }
+    if(data.cajas){ var cz = String(data.cajas).replace(/[^0-9]/g,''); if(cz){ $('f_cajas').value = cz; filled++; } }
+    if(data.especie){
+        var esp = data.especie.toLowerCase();
+        if(esp.indexOf('machuelo') > -1){ $('f_especie').value = 'Machuelo'; filled++; }
+        else if(esp.indexOf('sardina') > -1){ $('f_especie').value = 'Sardina'; filled++; }
+    }
+    if(data.presentacion){
+        var pres = data.presentacion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        var sel = $('f_presentacion');
+        for(var si=0;si<sel.options.length;si++){
+            var optN = sel.options[si].value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            if(optN && pres.indexOf(optN) > -1){ sel.selectedIndex = si; filled++; break; }
+        }
+    }
+    if(data.propietario){ $('f_propietario').value = data.propietario; filled++; }
+    if(data.ciPropietario){ applyCIValue('f_ciPropPrefijo','f_ciPropietario', data.ciPropietario); filled++; }
+    if(data.chofer){ $('f_chofer').value = data.chofer; filled++; }
+    if(data.ciChofer){ applyCIValue('f_ciChofPrefijo','f_ciChofer', data.ciChofer); filled++; }
+    if(data.cgt){ $('f_cgt').value = data.cgt; filled++; }
+    if(data.venceCgt){ var iso = parseDateValue(data.venceCgt); if(iso){ $('f_vence').value = iso; filled++; } }
+    if(data.marca){ $('f_marca').value = data.marca; filled++; }
+    if(data.destino){ $('f_destino').value = data.destino; filled++; }
+    if(data.estado){ $('f_estado').value = data.estado; filled++; }
+    if(data.municipio){ $('f_municipio').value = data.municipio; filled++; }
+    if(data.parroquia){ $('f_parroquia').value = data.parroquia; filled++; }
+    if(data.recibe){ $('f_recibe').value = data.recibe; filled++; }
+    if(data.telefono){ $('f_telefono').value = data.telefono; filled++; }
+    if(data.origen){ $('f_origen').value = data.origen; filled++; }
+    if(data.productor){ $('f_productor').value = data.productor; filled++; }
+    if(data.observacion){ $('f_observacion').value = data.observacion; filled++; }
+    checkCGT();
+    var same = !!( $('f_propietario').value && $('f_chofer').value &&
+        $('f_propietario').value === $('f_chofer').value &&
+        $('f_ciPropietario').value === $('f_ciChofer').value &&
+        $('f_ciPropPrefijo').value === $('f_ciChofPrefijo').value &&
+        $('f_ciPropPrefijo').value !== 'J-' );
+    $('f_mismoProp').checked = same;
+    toggleMismoProp();
+    if(filled > 0) toast('✓ ' + filled + ' campo' + (filled>1?'s':'') + ' rellenado' + (filled>1?'s':''));
+    else toast('⚠️ No se reconoció información válida');
+}
+
+/* === ESCANEO DE IMAGEN / PDF CON OCR ============================= */
+function scanDocument(){
+    var inp = document.getElementById('scanInput');
+    if(inp) inp.click();
+}
+async function handleScanFile(event){
+    var file = event.target.files && event.target.files[0];
+    event.target.value = '';
+    if(!file) return;
+    if(!file.type.startsWith('image/') && file.type !== 'application/pdf'){
+        toast('⚠️ Formato no soportado. Usa imagen o PDF.');
+        return;
+    }
+    showLoading('Procesando documento…', 'Preparando');
+    try{
+        var text = '';
+        if(file.type === 'application/pdf'){
+            text = await extractPdfText(file);
+        }else{
+            text = await extractImageText(file);
+        }
+        hideLoading();
+        if(!text || !text.trim()){
+            toast('⚠️ No se detectó texto en el documento');
+            return;
+        }
+        fillFromText(text);
+    }catch(e){
+        hideLoading();
+        console.error(e);
+        toast('⚠️ Error al procesar el documento');
+    }
+}
+async function extractImageText(file){
+    var T = await loadTesseract();
+    updateLoadingSub('Reconociendo texto…');
+    var result = await T.recognize(file, 'spa', {
+        logger: function(m){
+            if(m.status === 'recognizing text'){
+                updateLoadingSub(Math.round((m.progress||0)*100) + '%');
+            }else if(m.status){
+                updateLoadingSub(m.status);
+            }
+        }
+    });
+    return result.data.text;
+}
+async function extractPdfText(file){
+    var pdfjsLib = await loadPdfJs();
+    updateLoadingSub('Leyendo PDF…');
+    var buf = await file.arrayBuffer();
+    var pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    var text = '';
+    var maxPages = Math.min(pdf.numPages, 3);
+    for(var i=1; i<=maxPages; i++){
+        var page = await pdf.getPage(i);
+        var content = await page.getTextContent();
+        var pageText = content.items.map(function(it){return it.str;}).join(' ').trim();
+        if(pageText) text += pageText + '\n';
+    }
+    if(text.trim()) return text;
+    updateLoadingSub('Documento escaneado, aplicando OCR…');
+    var page1 = await pdf.getPage(1);
+    var viewport = page1.getViewport({scale: 2});
+    var canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    var ctx = canvas.getContext('2d');
+    await page1.render({canvasContext: ctx, viewport: viewport}).promise;
+    var T = await loadTesseract();
+    var result = await T.recognize(canvas, 'spa', {
+        logger: function(m){
+            if(m.status === 'recognizing text'){
+                updateLoadingSub(Math.round((m.progress||0)*100) + '%');
+            }
+        }
+    });
+    return result.data.text;
+}
+function loadTesseract(){
+    if(window.Tesseract) return Promise.resolve(window.Tesseract);
+    return new Promise(function(resolve, reject){
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+        s.onload = function(){ resolve(window.Tesseract); };
+        s.onerror = function(){ reject(new Error('No se pudo cargar el OCR')); };
+        document.head.appendChild(s);
+    });
+}
+function loadPdfJs(){
+    if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return new Promise(function(resolve, reject){
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+        s.onload = function(){
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+            resolve(window.pdfjsLib);
+        };
+        s.onerror = function(){ reject(new Error('No se pudo cargar PDF.js')); };
+        document.head.appendChild(s);
+    });
+}
+function showLoading(main, sub){
+    document.getElementById('loadingText').textContent = main || 'Procesando…';
+    document.getElementById('loadingSub').textContent = sub || '';
+    document.getElementById('loadingOverlay').classList.add('show');
+}
+function updateLoadingSub(txt){
+    var el = document.getElementById('loadingSub');
+    if(el) el.textContent = txt || '';
+}
+function hideLoading(){
+    document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+/* === HISTORIAL =================================================== */
 var currentFilter='placa';
 function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-tab').forEach(function(t){t.classList.toggle('active',t.dataset.f===f);});
 var labels={placa:'Buscar por placa…',destino:'Buscar por destino…',chofer:'Buscar por chofer…'};
