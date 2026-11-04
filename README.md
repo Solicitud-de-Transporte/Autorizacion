@@ -25,19 +25,19 @@ App web **local-first** para registrar solicitudes de autorización de transport
 
 ## 📁 Estructura
 
-📁 raíz
-📄 index.html          → Interfaz principal
-📄 manifest.json       → PWA manifest
-📄 users.json          → Lista de usuarios autorizados (tú la editas)
-📄 sw.js               → Service Worker (offline)
-📄 README.md           → Este archivo
-📁 js
-📄 config.js           → Constantes globales
-📄 db.js               → Capa IndexedDB
-📄 identity.js         → Registro, autorización, perfil
-📄 admin.js            → Panel de administración
-📄 balance.js          → Centro de Balance
-📄 backup.js           → Respaldos automáticos
-📄 sync.js             → Sincronización P2P
-📄 app.js              → Lógica principal
+- 📁 raíz
+- 📄 index.html          → Interfaz principal
+- 📄 manifest.json       → PWA manifest
+- 📄 users.json          → Lista de usuarios autorizados (tú la editas)
+- 📄 sw.js               → Service Worker (offline)
+- 📄 README.md           → Este archivo
+- 📁 js
+- 📄 config.js           → Constantes globales
+- 📄 db.js               → Capa IndexedDB
+- 📄 identity.js         → Registro, autorización, perfil
+- 📄 admin.js            → Panel de administración
+- 📄 balance.js          → Centro de Balance
+- 📄 backup.js           → Respaldos automáticos
+- 📄 sync.js             → Sincronización P2P
+- 📄 app.js              → Lógica principal
 
