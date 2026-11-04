@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0d3b66">
 <meta name="description" content="Solicitud de Autorización - Insopesca El Morro">
 <title>Solicitud de Autorización | Insopesca El Morro</title>
-<link rel="manifest" id="manifestLink">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d3b66'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>🐟</text></svg>">
 <style>
 :root{--primary:#0d3b66;--primary-light:#14538f;--accent:#1b9aaa;--accent-dark:#137f8c;--danger:#c0392b;--success:#27ae60;--warning:#e67e22;--bg:#f0f4f8;--card:#fff;--text:#1a2b3c;--text-light:#5a6b7c;--border:#d5dee8;--radius:14px;--shadow-lg:0 10px 40px rgba(13,59,102,.18)}
@@ -20,9 +20,16 @@ header{background:linear-gradient(135deg,var(--primary),var(--primary-light));co
 h1{font-size:1.45rem;font-weight:700}
 .subtitle{font-size:.82rem;opacity:.85;margin-top:2px}
 .author-badge{display:inline-block;margin-top:10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:20px;font-size:.72rem}
+.profile-badge{display:flex;align-items:center;gap:10px;margin-top:10px}
+.profile-avatar{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.2rem;overflow:hidden;flex-shrink:0;transition:transform .15s}
+.profile-avatar:hover{transform:scale(1.05)}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-info{display:flex;flex-direction:column;min-width:0}
+.profile-name{font-size:.9rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-role{font-size:.7rem;opacity:.75}
 .tabs-row{display:flex;gap:8px;margin-top:18px;align-items:center}
-.tabs{display:flex;gap:8px;flex:1;min-width:0}
-.tab{flex:1;padding:11px 8px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{display:flex;gap:8px;flex:1;min-width:0;flex-wrap:wrap}
+.tab{flex:1;min-width:80px;padding:11px 8px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab.active{background:#fff;color:var(--primary)}
 .icon-actions{display:flex;gap:6px;flex-shrink:0}
 .icon-btn{width:44px;height:44px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .2s;-webkit-tap-highlight-color:transparent}
@@ -55,6 +62,8 @@ main{margin-top:-46px;position:relative;z-index:3}
 .btn:active{transform:scale(.97)}
 .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff}
 .btn-whatsapp{background:linear-gradient(135deg,#25d366,#1da851);color:#fff}
+.btn-approve{background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff}
+.btn-reject{background:linear-gradient(135deg,#c0392b,#96281b);color:#fff}
 .btn-secondary{background:#eef2f7;color:var(--primary);border:1.5px solid var(--border)}
 .btn-sm{padding:8px 14px;font-size:.8rem;width:auto;border-radius:9px}
 .btn-row{display:flex;gap:10px;margin-top:8px}
@@ -66,21 +75,48 @@ main{margin-top:-46px;position:relative;z-index:3}
 .search-box input{padding-left:38px}
 .search-box .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.5}
 .results-count{font-size:.78rem;color:var(--text-light);margin:10px 0 12px;font-weight:600}
+.date-filter{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px;align-items:end}
+.date-filter .field{margin-bottom:0}
+.date-filter label{font-size:.72rem}
+.date-filter input{padding:8px 10px;font-size:.82rem}
+@media(max-width:480px){.date-filter{grid-template-columns:1fr 1fr}.date-filter .btn{grid-column:1/-1}}
 .history-item{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
 .history-item:hover{border-color:var(--accent)}
 .history-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
 .history-plate{font-size:1.15rem;font-weight:800;color:var(--primary);letter-spacing:1px}
 .history-date{font-size:.72rem;color:var(--text-light);background:#eef2f7;padding:4px 10px;border-radius:20px;white-space:nowrap}
-.history-meta{font-size:.8rem;color:var(--text-light);line-height:1.6;margin-bottom:12px}
+.history-meta{font-size:.8rem;color:var(--text-light);line-height:1.6;margin-bottom:10px}
 .history-meta strong{color:var(--text)}
+.record-author{font-size:.72rem;color:var(--text-light);margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap}
+.record-author strong{color:var(--text)}
 .history-actions{display:flex;gap:8px;flex-wrap:wrap}
-.hbtn{flex:1;min-width:70px;padding:8px 4px;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit}
+.hbtn{flex:1;min-width:60px;padding:8px 4px;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit}
 .hbtn-view{background:#eef2f7;color:var(--primary)}
 .hbtn-edit{background:#e8f4f8;color:var(--accent-dark)}
 .hbtn-new{background:#eafaf1;color:var(--success)}
 .hbtn-del{background:#fdecea;color:var(--danger)}
+.hbtn-approve{background:#eafaf1;color:var(--success)}
+.hbtn-reject{background:#fdecea;color:var(--danger)}
+.hbtn-suspend{background:#fff3cd;color:#856404}
+.hbtn-reactivate{background:#d4edda;color:#155724}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-light)}
 .empty-state .big{font-size:3rem;margin-bottom:10px;opacity:.4}
+.edit-banner{background:#fef5e7;border:1.5px solid #f8c471;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.82rem;color:#7e4f00;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.status-pending{background:#fef5e7;color:#a06400;border:1px solid #f8c471}
+.status-approved{background:#eafaf1;color:#186a3b;border:1px solid #a9dfbf}
+.status-rejected{background:#fdecea;color:#922b21;border:1px solid #f5b7b1}
+.status-sent{background:#e8f4f8;color:#0d546b;border:1px solid #a9d4e6}
+.status-new{background:#fff3cd;color:#856404;border:1px solid #ffc107;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.status-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.detail-actions .btn{flex:1;min-width:120px}
+.balance-badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.balance-obs{background:#fff8e1;border-left:3px solid #f8c471;padding:8px 12px;border-radius:6px;font-size:.78rem;margin-bottom:10px;color:#7e4f00}
+.balance-filter-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.balance-filter-tab{flex:1;min-width:90px;padding:9px 8px;border:1.5px solid var(--border);border-radius:9px;background:#fff;font-size:.78rem;font-weight:600;color:var(--text-light);cursor:pointer;font-family:inherit}
+.balance-filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,25,40,.6);z-index:100;padding:16px;overflow-y:auto}
 .modal-overlay.show{display:flex;align-items:flex-start;justify-content:center}
 .modal{background:#fff;border-radius:16px;max-width:620px;width:100%;margin:30px auto;padding:24px 20px}
@@ -93,6 +129,18 @@ main{margin-top:-46px;position:relative;z-index:3}
 .detail-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:3px}
 .detail-value{font-size:.88rem;font-weight:600;word-break:break-word}
 @media(max-width:480px){.detail-grid{grid-template-columns:1fr}}
+.delete-modal{max-width:440px}
+.delete-options{display:flex;flex-direction:column;gap:10px}
+.delete-option{display:flex;align-items:center;gap:12px;text-align:left;padding:14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:inherit;transition:all .15s}
+.delete-option:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.delete-option-icon{font-size:1.6rem;flex-shrink:0}
+.delete-option-title{font-size:.9rem;font-weight:700;color:var(--text)}
+.delete-option-desc{font-size:.75rem;color:var(--text-light);margin-top:2px}
+.delete-local{border-color:#b8d4e8}
+.delete-local:hover{background:#f0f8fe;border-color:var(--accent)}
+.delete-global{border-color:#f5b7b1}
+.delete-global:hover{background:#fdecea;border-color:var(--danger)}
+.delete-global .delete-option-title{color:var(--danger)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:12px 22px;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 .toast.show{opacity:1}
 .install-banner{display:none;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-radius:12px;padding:14px 16px;margin-bottom:16px;align-items:center;gap:12px}
@@ -121,16 +169,136 @@ main{margin-top:-46px;position:relative;z-index:3}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-weight:700;font-size:.98rem}
 .loading-sub{font-size:.82rem;opacity:.85;min-height:1.2em}
+#identityBootView{position:fixed;inset:0;z-index:40;background:linear-gradient(135deg,#0d3b66,#14538f);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;gap:20px}
+#identityBootView .boot-text{font-size:.9rem;font-weight:600}
+.identity-modal{max-width:480px}
+.identity-modal .field{margin-bottom:14px}
+.admin-panel{padding:4px 0}
+.admin-title{font-size:1.2rem;font-weight:700;color:var(--primary);margin-bottom:4px}
+.admin-sub{font-size:.8rem;color:var(--text-light);margin-bottom:20px}
+.admin-section{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.admin-section h3{font-size:.95rem;font-weight:700;color:var(--primary);margin-bottom:12px}
+.admin-h4{font-size:.82rem;font-weight:700;color:var(--text);margin:14px 0 8px}
+.admin-storage-info{background:#e8f4f8;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:var(--accent-dark)}
+.admin-form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.admin-form-row input,.admin-form-row select{flex:1;min-width:120px;padding:9px 11px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:.85rem;background:#fbfcfe}
+.admin-form-row .btn{flex:0 0 auto;min-width:auto}
+.admin-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.admin-danger{border-color:#f5b7b1}
+.pending-banner{display:none;background:#fff8e1;border:1.5px solid #f8c471;border-radius:9px;padding:10px 12px;margin-bottom:12px;font-size:.82rem;color:#7e4f00;align-items:center;gap:8px}
+.stat-total{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
+.stat-total .stat-label{font-size:.72rem;opacity:.85;text-transform:uppercase;letter-spacing:.8px}
+.stat-total .stat-value{font-weight:800}
+.stat-time{background:#e8f4f8;border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.stat-time .stat-label{font-size:.78rem;color:var(--accent-dark);font-weight:600}
+.stat-time .stat-value{font-size:1.1rem;font-weight:800;color:var(--accent-dark)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-card{background:#f7fafc;border-radius:10px;padding:12px;text-align:center}
+.stat-card .stat-label{font-size:.7rem;color:var(--text-light);font-weight:600}
+.stat-card .stat-value{font-size:1.5rem;font-weight:800;color:var(--primary)}
+.bars-wrap{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:grid;grid-template-columns:80px 1fr 40px;gap:8px;align-items:center;font-size:.75rem}
+.bar-label{color:var(--text-light)}
+.bar-track{background:#eef2f7;height:16px;border-radius:8px;overflow:hidden}
+.bar-fill{background:linear-gradient(90deg,var(--accent),var(--accent-dark));height:100%;border-radius:8px}
+.bar-count{text-align:right;font-weight:700;color:var(--text)}
+.stat-users{display:flex;flex-direction:column;gap:4px}
+.stat-user-row{display:flex;justify-content:space-between;padding:6px 10px;background:#f7fafc;border-radius:6px;font-size:.8rem}
+.audit-row{display:flex;gap:8px;padding:8px;border-bottom:1px solid #eef2f7;font-size:.82rem}
+.audit-icon{color:var(--accent);flex-shrink:0}
+.audit-body{flex:1}
+.audit-line{color:var(--text)}
+.audit-time{font-size:.7rem;color:var(--text-light);margin-top:2px}
+.user-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f7fafc;border-radius:8px;margin-bottom:6px;gap:8px}
+.user-row-pending{background:#fff8e1;border-left:3px solid #f8c471}
+.user-row-suspended{opacity:.75;background:#fdecea;border-left:3px solid var(--danger)}
+.user-info{flex:1;min-width:0}
+.user-name{font-weight:700;font-size:.88rem}
+.user-id{font-family:monospace;font-size:.72rem;color:var(--text-light)}
+.user-actions{display:flex;gap:6px;flex-shrink:0}
+.user-actions .hbtn{min-width:38px;padding:6px 8px;flex:0 0 auto}
+.tag-admin{background:var(--primary);color:#fff;font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:12px}
+.tag-suspended{background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:12px;margin-left:4px;vertical-align:middle}
+.online-label{font-size:.85rem;font-weight:700;color:var(--success);margin-bottom:8px}
+.online-user{padding:6px 10px;background:#f0fdf4;border-radius:6px;margin-bottom:4px;font-size:.85rem}
+.online-user.offline{background:#f7fafc}
+.online-user .seen-time{color:var(--text-light);font-size:.75rem;font-weight:600}
+.online-user .seen-abs{color:var(--text-light);font-size:.7rem;opacity:.7}
+.empty-mini{font-size:.8rem;color:var(--text-light);padding:8px;text-align:center}
+.pending-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f7fafc;border-radius:8px;margin-bottom:6px;gap:8px}
+.pending-info{flex:1;min-width:0}
+.pending-actions{display:flex;gap:6px;flex-shrink:0}
+.pending-actions .hbtn{min-width:38px;padding:6px 8px;flex:0 0 auto}
+.balance-item{border-left:4px solid var(--accent)}
+.backup-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f7fafc;border-radius:8px;margin-bottom:6px;gap:8px}
+.backup-info{flex:1;min-width:0}
+.backup-date{font-weight:700;font-size:.85rem}
+.backup-meta{font-size:.72rem;color:var(--text-light);margin-top:2px}
+.profile-modal-avatar{width:100px;height:100px;border-radius:50%;background:#eef2f7;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:2rem;overflow:hidden;margin:0 auto 16px}
+.profile-modal-avatar img{width:100%;height:100%;object-fit:cover}
+@media (max-width:480px){
+  .stat-grid{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .stat-card .stat-value{font-size:1.2rem}
+  .bar-row{grid-template-columns:65px 1fr 32px;font-size:.7rem}
+  .admin-form-row input,.admin-form-row select{min-width:100px}
+  .balance-filter-tab{font-size:.72rem;min-width:70px}
+  .user-actions .hbtn{min-width:34px;padding:5px 6px;font-size:.7rem}
+}
 </style>
 </head>
 <body>
+
+<div class="modal-overlay" id="identityFirstBootModal">
+  <div class="modal identity-modal">
+    <div class="modal-header"><div class="modal-title">👋 Bienvenido</div></div>
+    <p style="font-size:.85rem;color:var(--text-light);margin-bottom:16px">
+      Antes de usar la app, regístrate. Enviarás tu ID por WhatsApp al administrador para que te autorice.
+    </p>
+    <div class="field"><label>📌 Tu nombre y apellido <span class="req">*</span></label><input type="text" id="ifb_name" placeholder="Ej: Juan Pérez"></div>
+    <div class="field"><label>📌 Puerto</label><select id="ifb_port"></select></div>
+    <div class="field"><label class="check-inline"><input type="checkbox" id="ifb_manualToggle"> Soy administrador (ingresar ID manualmente)</label></div>
+    <div id="ifb_manualWrap" style="display:none"><div class="field"><label>📌 ID de administrador</label><input type="text" id="ifb_manualId" placeholder="ID asignado" autocomplete="off"></div></div>
+    <button id="ifb_submitBtn" class="btn btn-primary" style="margin-top:8px">📱 Enviar solicitud por WhatsApp</button>
+    <div class="hint" style="margin-top:10px;text-align:center">Tu ID se generará automáticamente al continuar.<br>La foto de perfil la puedes subir después, ya dentro de la app.</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="identityWaitingModal">
+  <div class="modal identity-modal" style="text-align:center">
+    <div class="modal-header" style="justify-content:center"><div class="modal-title">⏳ Esperando autorización</div></div>
+    <div style="font-size:3rem;margin:16px 0">🔒</div>
+    <p id="iwm_description" style="font-size:.9rem;margin-bottom:16px">Tu ID fue enviado al administrador. Cuando te autorice podrás entrar.</p>
+    <div style="background:#eef2f7;border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;margin-bottom:4px">Tu ID</div>
+      <div id="iwm_idDisplay" style="font-family:monospace;font-size:1.05rem;font-weight:700;color:var(--primary);word-break:break-all">—</div>
+    </div>
+    <p style="font-size:.8rem;color:var(--text-light);margin-bottom:16px">¿No pudiste enviar? Escríbenos al <strong id="iwm_whatsapp">+58…</strong></p>
+    <button id="iwm_checkBtn" class="btn btn-primary">🔄 Verificar de nuevo</button>
+    <button id="iwm_whatsappBtn" class="btn btn-whatsapp" style="margin-top:8px">📱 Reenviar por WhatsApp</button>
+  </div>
+</div>
+
+<div id="identityBootView">
+  <div class="spinner"></div>
+  <div class="boot-text">Iniciando…</div>
+</div>
+
+<div id="appView" style="display:none">
 <header><div class="header-content">
 <div class="logo-row"><div class="logo-icon">🐟</div><div><h1>Insopesca El Morro</h1><div class="subtitle">Sistema de Solicitud de Autorización de Transporte</div></div></div>
-<span class="author-badge">© Emmanuel Manosalva</span>
+<div class="profile-badge" title="Toca para cambiar foto / nombre">
+  <div class="profile-avatar" id="profilePhoto">?</div>
+  <div class="profile-info">
+    <div class="profile-name" id="profileName">Usuario</div>
+    <div class="profile-role" id="profileRole">operador</div>
+  </div>
+</div>
 <div class="tabs-row">
 <div class="tabs">
-<button class="tab active" id="tabForm" onclick="switchView('form')">📝 Nueva Solicitud</button>
+<button class="tab active" id="tabForm" onclick="startNewForm()">📝 Nueva</button>
 <button class="tab" id="tabHistory" onclick="switchView('history')">📋 Historial <span id="histCountBadge" style="background:#c0392b;color:#fff;font-size:.65rem;padding:1px 7px;border-radius:10px;margin-left:2px">0</span></button>
+<button class="tab" id="tabBalance" onclick="switchView('balance')" style="display:none">⚖️ Balance</button>
+<button class="tab" id="tabAdmin" onclick="switchView('admin')" style="display:none">⚙️ Admin</button>
 </div>
 <div class="icon-actions">
 <button class="icon-btn" onclick="pasteData()" title="Pegar datos del portapapeles">📋</button>
@@ -141,9 +309,14 @@ main{margin-top:-46px;position:relative;z-index:3}
 <input type="file" id="scanInput" accept="image/*,application/pdf" style="display:none" onchange="handleScanFile(event)">
 <main class="container">
 <div class="install-banner" id="installBanner"><span style="font-size:1.4rem">📲</span><div class="txt">Instala la app en tu dispositivo</div><button onclick="installApp()">Instalar</button></div>
+
 <div id="viewForm"><div class="card">
 <div class="card-title">📋 Solicitud de Autorización</div>
 <div class="card-sub">Complete los datos. Los campos con <span style="color:#c0392b">*</span> son obligatorios. Usa <strong>📋</strong> para pegar o <strong>📷</strong> para escanear.</div>
+<div id="editBanner" class="edit-banner" style="display:none">
+  <span>✏️ Editando solicitud <strong id="editBannerPlate"></strong></span>
+  <button type="button" onclick="cancelEdit()" class="btn btn-sm btn-secondary">Cancelar</button>
+</div>
 <form id="authForm" autocomplete="off" onsubmit="return false">
 <div class="form-section"><div class="section-label">🗓️ Fecha</div>
 <div class="field"><label>📌 Fecha <span class="req">*</span></label><input type="text" id="f_fecha" readonly style="background:#eef2f7;font-weight:700;color:var(--primary)"></div>
@@ -156,11 +329,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 </div>
 <div class="field"><label>📌 Presentación <span class="req">*</span></label><select id="f_presentacion" required><option value="">Seleccionar…</option><option value="Entera">🐟 Entera</option><option value="Picada">🔪 Picada</option><option value="Entera Congelada">🧊 Entera Congelada</option><option value="Picada Congelada">🧊 Picada Congelada</option></select></div>
 <div class="grid-2">
-<div class="field">
-  <label>📌 Marca</label>
-  <input type="text" id="f_marca" placeholder="Ej: Kenworth, Ford" autocomplete="off">
-  <div class="suggestions-list" id="marcaSuggestions"></div>
-</div>
+<div class="field"><label>📌 Marca</label><input type="text" id="f_marca" placeholder="Ej: Kenworth, Ford" autocomplete="off"><div class="suggestions-list" id="marcaSuggestions"></div></div>
 <div class="field"><label>📌 CGT <span class="req">*</span></label><input type="text" id="f_cgt" placeholder="N° de CGT" required></div>
 </div>
 <div class="field"><label>📌 Vence CGT <span class="req">*</span></label><input type="date" id="f_vence" required><div class="cgt-alert" id="cgtAlert"></div></div>
@@ -194,14 +363,15 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div class="form-section"><div class="section-label">📝 Observación</div>
 <div class="field"><textarea id="f_observacion" placeholder="Observaciones adicionales (opcional)"></textarea></div></div>
 <div class="btn-row">
-<button type="button" class="btn btn-secondary" onclick="clearForm()">🧹 Limpiar</button>
+<button type="button" class="btn btn-secondary" onclick="startNewForm()">🧹 Limpiar</button>
 <button type="button" class="btn btn-primary" onclick="saveToHistory()">💾 Guardar</button>
 </div>
 <div style="margin-top:10px"><button type="button" class="btn btn-whatsapp" onclick="sendWhatsApp()">📱 Enviar por WhatsApp</button></div>
 </form></div></div>
+
 <div id="viewHistory" class="hidden"><div class="card">
 <div class="card-title">📚 Historial de Solicitudes</div>
-<div class="card-sub">Busque por <strong>una sola</strong> opción: placa, destino o chofer.</div>
+<div class="card-sub">Busca por <strong>una sola</strong> opción y filtra por fecha si lo necesitas.</div>
 <div class="filter-group">
 <div class="filter-tabs">
 <button class="filter-tab active" data-f="placa" onclick="setFilter('placa')">🚗 Placa</button>
@@ -209,666 +379,107 @@ main{margin-top:-46px;position:relative;z-index:3}
 <button class="filter-tab" data-f="chofer" onclick="setFilter('chofer')">🧑‍✈️ Chofer</button>
 </div>
 <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Buscar por placa…" oninput="renderHistory()"></div>
+<div class="date-filter">
+  <div class="field"><label>Desde</label><input type="date" id="histFrom" onchange="renderHistory()"></div>
+  <div class="field"><label>Hasta</label><input type="date" id="histTo" onchange="renderHistory()"></div>
+  <button class="btn btn-secondary btn-sm" type="button" onclick="clearDateFilter()">✕</button>
+</div>
 </div>
 <div class="results-count" id="resultsCount"></div>
 <div id="historyList"></div>
 </div></div>
+
+<div id="viewBalance" class="hidden"><div id="balancePanelContainer"></div></div>
+<div id="viewAdmin" class="hidden"><div id="adminPanelContainer"></div></div>
+
 <div class="footer-note"><strong>Insopesca El Morro</strong> · Datos almacenados localmente en este dispositivo.<br>© 2026 Emmanuel Manosalva · Todos los derechos reservados</div>
 </main>
 <nav class="bottom-nav">
-<button class="nav-item active" id="navForm" onclick="switchView('form')"><span class="nav-ico">📝</span>Nueva</button>
+<button class="nav-item active" id="navForm" onclick="startNewForm()"><span class="nav-ico">📝</span>Nueva</button>
 <button class="nav-item" id="navHistory" onclick="switchView('history')"><span class="nav-ico">📋</span>Historial<span class="nav-badge" id="navBadge">0</span></button>
 </nav>
+</div>
+
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()"><div class="modal">
 <div class="modal-header"><div class="modal-title" id="modalTitle">Detalle</div><button class="modal-close" onclick="closeModal()">✕</button></div>
 <div id="modalBody"></div></div></div>
+
+<div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)hideDeleteModal()">
+  <div class="modal delete-modal">
+    <div class="modal-header"><div class="modal-title">🗑️ Eliminar solicitud</div><button class="modal-close" onclick="hideDeleteModal()">✕</button></div>
+    <p style="margin-bottom:16px;color:var(--text-light);font-size:.88rem">Elige cómo eliminar esta solicitud:</p>
+    <div class="delete-options">
+      <button class="delete-option delete-local" onclick="doDeleteLocal()">
+        <div class="delete-option-icon">👁️</div>
+        <div><div class="delete-option-title">Ocultar solo para mí</div><div class="delete-option-desc">Otros dispositivos seguirán viéndola</div></div>
+      </button>
+      <button class="delete-option delete-global" onclick="doDeleteGlobal()">
+        <div class="delete-option-icon">🗑️</div>
+        <div><div class="delete-option-title">Borrar para TODOS</div><div class="delete-option-desc">Irreversible. Desaparece en todos los dispositivos</div></div>
+      </button>
+      <button class="delete-option delete-cancel" onclick="hideDeleteModal()">
+        <div class="delete-option-icon">✕</div>
+        <div><div class="delete-option-title">Cancelar</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="balanceChangeModal" onclick="if(event.target===this)Balance.closeChange()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><div class="modal-title" id="balanceChangeTitle">Cambiar estado</div><button class="modal-close" onclick="Balance.closeChange()">✕</button></div>
+    <div id="balanceChangeInfo" style="background:#f7fafc;border-radius:8px;padding:10px 12px;font-size:.85rem;margin-bottom:14px"></div>
+    <div class="field"><label>📝 Observación (opcional)</label><textarea id="balanceChangeObs" placeholder="Observaciones que verá el solicitante"></textarea></div>
+    <div class="btn-row">
+      <button id="balanceChangeCancel" class="btn btn-secondary">Cancelar</button>
+      <button id="balanceChangeConfirm" class="btn btn-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="profileModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">👤 Mi perfil</div>
+      <button class="modal-close" onclick="closeProfileModal()">✕</button>
+    </div>
+    <div class="profile-modal-avatar" id="profileModalAvatar">?</div>
+    <div class="field">
+      <label>📷 Foto de perfil (opcional)</label>
+      <input type="file" id="profileModalPhoto" accept="image/*">
+      <div class="btn-row" style="margin-top:8px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="removeProfilePhoto()" id="profileModalRemovePhoto">🗑️ Quitar foto</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>📌 Nombre y apellido</label>
+      <input type="text" id="profileModalName" placeholder="Tu nombre completo">
+    </div>
+    <div class="field">
+      <label>📌 Puerto</label>
+      <select id="profileModalPort"></select>
+    </div>
+    <div class="btn-row">
+      <button id="profileModalCancel" class="btn btn-secondary">Cancelar</button>
+      <button id="profileModalSave" class="btn btn-primary">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="loading-overlay" id="loadingOverlay">
 <div class="spinner"></div>
 <div class="loading-text" id="loadingText">Procesando documento…</div>
 <div class="loading-sub" id="loadingSub">Iniciando</div>
 </div>
 <div class="toast" id="toast"></div>
-<script>
-var NL=String.fromCharCode(10);
-var PIN='\uD83D\uDCCC';
 
-// Base de datos de Empresas para Destino
-var EMPRESAS = [
-{label:'Contupesca, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
-{label:'Inv. Buenaventura 2014, C.A., Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
-{label:'Inv. La Piragua, C.A., El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
-{label:'Inv. Tort Mar, C.A., El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
-{label:'Inv. Xouba, Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
-{label:'Inv. Yurianjor, C.A., Puerto Santo', estado:'Sucre', municipio:'Arismendi', parroquia:'Puerto Santo'},
-{label:'Mi Esfuerzo, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
-{label:'Salmar, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'},
-{label:'UPSA Luisa Cáceres de Arismendi, El Morro', estado:'Sucre', municipio:'Arismendi', parroquia:'El Morro'}
-];
-
-// Base de datos de Marcas de vehículos tipo cava
-var MARCAS_VEHICULOS = [
-'Kenworth','Chevrolet','Ford','Mack','Volvo','Scania','Mercedes-Benz','Iveco','Freightliner','International',
-'Hino','Isuzu','JAC','Foton','JMC','Dongfeng','Mitsubishi','Nissan','Toyota','Hyundai','Kia','Peugeot',
-'Renault','Citroën','Fiat','MAN','DAF','Peterbilt','Western Star','Sterling','Autocar','UD Trucks',
-'Tata','Ashok Leyland','Sinotruk','Shacman','FAW','CAMC','Dayun','Maxus','JBC','Mazda','Dodge','Ram'
-];
-
-var manifest={name:"Insopesca El Morro",short_name:"Insopesca",start_url:".",display:"standalone",background_color:"#0d3b66",theme_color:"#0d3b66",icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d3b66'/><text x='50' y='68' font-size='52' text-anchor='middle'>🐟</text></svg>"),sizes:"512x512",type:"image/svg+xml"}]};
-document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
-if('serviceWorker' in navigator){var sw="self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(function(){});}
-var deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show');});
-function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;document.getElementById('installBanner').classList.remove('show');}}
-var DB_KEY='insopesca_history_v1';
-function getHistory(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[]}catch(e){return[]}}
-function setHistory(h){localStorage.setItem(DB_KEY,JSON.stringify(h));updateBadges();}
-function migrateHistory(){var h=getHistory(),changed=false;h.forEach(function(r){if(r.especie===undefined){r.especie='Sardina';changed=true;}if(r.presentacion===undefined){r.presentacion=r.sardina||'';changed=true;}});if(changed)setHistory(h);}
-function updateBadges(){var n=getHistory().length;document.getElementById('navBadge').textContent=n;document.getElementById('histCountBadge').textContent=n;}
-function $(id){return document.getElementById(id);}
-function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show')},2600);}
-function todayStr(){var d=new Date();var dd=('0'+d.getDate()).slice(-2);var mm=('0'+(d.getMonth()+1)).slice(-2);return dd+'/'+mm+'/'+d.getFullYear();}
-function fmtDate(iso){if(!iso)return'';var d=new Date(iso.length===10?iso+'T00:00:00':iso);return d.toLocaleDateString('es-VE');}
-function formatCI(v){v=v.replace(/\D/g,'');return v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
-function bindCIFormat(inputId,prefixId){var inp=$(inputId),pre=$(prefixId);
-inp.addEventListener('input',function(){var raw=inp.value.replace(/\D/g,'');inp.value=pre.value==='J-'?raw:formatCI(raw);});
-pre.addEventListener('change',function(){var raw=inp.value.replace(/\D/g,'');inp.value=pre.value==='J-'?raw:formatCI(raw);if(prefixId==='f_ciPropPrefijo'){$('ciPropHint').textContent=pre.value==='J-'?'RIF: sin separación de miles':'Cédula: con puntos de mil';}});}
-bindCIFormat('f_ciPropietario','f_ciPropPrefijo');
-bindCIFormat('f_ciChofer','f_ciChofPrefijo');
-$('f_placa').addEventListener('input',function(e){e.target.value=e.target.value.toUpperCase();});
-$('f_vence').addEventListener('change',checkCGT);
-function checkCGT(){var v=$('f_vence').value,alert=$('cgtAlert');if(!v){alert.className='cgt-alert';return;}
-var today=new Date();today.setHours(0,0,0,0);var exp=new Date(v+'T00:00:00');var diff=Math.ceil((exp-today)/(86400000));
-alert.className='cgt-alert show';
-if(diff<0){alert.classList.add('expired');alert.innerHTML='⚠️ <span>CGT VENCIDO hace '+Math.abs(diff)+' día'+(Math.abs(diff)>1?'s':'')+'. Puede continuar, pero verifique el documento.</span>';}
-else if(diff<=30){alert.classList.add('warning');alert.innerHTML='⏳ <span>CGT vence en '+diff+' día'+(diff>1?'s':'')+'. Considere renovarlo pronto.</span>';}
-else{alert.classList.add('ok');alert.innerHTML='✅ <span>CGT vigente.</span>';}}
-$('f_placa').addEventListener('input',function(){var val=this.value.trim().toUpperCase();var hint=$('placaHint');
-if(val.length<3){hint.style.display='none';return;}
-var match=getHistory().find(function(h){return h.placa===val;});
-if(match){fillForm(match);hint.style.display='block';toast('✓ Datos cargados de: '+val);}else{hint.style.display='none';}});
-function fillForm(d){
-$('f_cajas').value=d.cajas||'';
-$('f_especie').value=d.especie||'Sardina';
-$('f_presentacion').value=d.presentacion||d.sardina||'';
-$('f_propietario').value=d.propietario||'';
-setCI('f_ciPropPrefijo','f_ciPropietario',d.ciPropietario||'');
-$('f_chofer').value=d.chofer||'';
-setCI('f_ciChofPrefijo','f_ciChofer',d.ciChofer||'');
-var same=!!(d.chofer&&d.propietario&&d.chofer===d.propietario&&d.ciChofer===d.ciPropietario);
-$('f_mismoProp').checked=same;
-toggleMismoProp();
-$('f_cgt').value=d.cgt||'';$('f_vence').value=d.venceCgt||'';checkCGT();
-$('f_marca').value=d.marca||'';$('f_destino').value=d.destino||'';$('f_estado').value=d.estado||'';
-$('f_municipio').value=d.municipio||'';$('f_parroquia').value=d.parroquia||'';
-$('f_recibe').value=d.recibe||'';$('f_telefono').value=d.telefono||'';
-$('f_origen').value=d.origen||'';
-$('f_productor').value=d.productor||'';$('f_observacion').value=d.observacion||'';}
-function setCI(prefixId,inputId,full){var pre=$(prefixId),inp=$(inputId);var p='V-',num=full||'';
-if(num.indexOf('J-')===0){p='J-';num=num.slice(2);}else if(num.indexOf('E-')===0){p='E-';num=num.slice(2);}else if(num.indexOf('V-')===0){p='V-';num=num.slice(2);}
-pre.value=p;var raw=num.replace(/\D/g,'');inp.value=p==='J-'?raw:formatCI(raw);}
-function syncMismoProp(){
-if(!$('f_mismoProp').checked)return;
-if($('f_ciPropPrefijo').value==='J-'){$('f_mismoProp').checked=false;toggleMismoProp();return;}
-$('f_chofer').value=$('f_propietario').value;
-$('f_ciChofPrefijo').value=$('f_ciPropPrefijo').value;
-$('f_ciChofer').value=$('f_ciPropietario').value;
-}
-function toggleMismoProp(){
-var checked=$('f_mismoProp').checked;
-if(checked&&$('f_ciPropPrefijo').value==='J-'){toast('⚠️ Un RIF no puede usarse como C.I. del chofer');$('f_mismoProp').checked=false;checked=false;}
-if(checked){
-syncMismoProp();
-$('f_chofer').readOnly=true;$('f_ciChofer').readOnly=true;$('f_ciChofPrefijo').disabled=true;
-$('f_chofer').classList.add('readonly-input');$('f_ciChofer').classList.add('readonly-input');$('f_ciChofPrefijo').classList.add('readonly-input');
-}else{
-$('f_chofer').readOnly=false;$('f_ciChofer').readOnly=false;$('f_ciChofPrefijo').disabled=false;
-$('f_chofer').classList.remove('readonly-input');$('f_ciChofer').classList.remove('readonly-input');$('f_ciChofPrefijo').classList.remove('readonly-input');
-}
-}
-$('f_propietario').addEventListener('input',syncMismoProp);
-$('f_ciPropietario').addEventListener('input',syncMismoProp);
-$('f_ciPropPrefijo').addEventListener('change',syncMismoProp);
-
-/* === AUTOCOMPLETADO DE MARCA === */
-function renderMarcaSuggestions(){
-    var q=$('f_marca').value.trim().toLowerCase();
-    var list=$('marcaSuggestions');
-    if(!q){list.classList.remove('show');list.innerHTML='';return;}
-    var matches=MARCAS_VEHICULOS.filter(function(m){return m.toLowerCase().indexOf(q)>-1;});
-    if(!matches.length){list.classList.remove('show');list.innerHTML='';return;}
-    list.innerHTML=matches.map(function(m){
-        return '<div class="suggestion-item" onmousedown="selectMarca(\''+m+'\',event)">'+m+'</div>';
-    }).join('');
-    list.classList.add('show');
-}
-function selectMarca(m,ev){
-    if(ev)ev.preventDefault();
-    $('f_marca').value=m;
-    $('marcaSuggestions').classList.remove('show');
-}
-$('f_marca').addEventListener('input',renderMarcaSuggestions);
-$('f_marca').addEventListener('blur',function(){setTimeout(function(){$('marcaSuggestions').classList.remove('show');},180);});
-
-/* === AUTOCOMPLETADO DE DESTINO === */
-function renderDestinoSuggestions(){
-var q=$('f_destino').value.trim().toLowerCase();
-var list=$('destinoSuggestions');
-if(!q){list.classList.remove('show');list.innerHTML='';return;}
-var matches=[];
-for(var i=0;i<EMPRESAS.length;i++){if(EMPRESAS[i].label.toLowerCase().indexOf(q)>-1)matches.push(i);}
-if(!matches.length){list.classList.remove('show');list.innerHTML='';return;}
-list.innerHTML=matches.map(function(i){return '<div class="suggestion-item" data-i="'+i+'" onmousedown="selectEmpresa('+i+',event)">'+esc(EMPRESAS[i].label)+'</div>';}).join('');
-list.classList.add('show');
-}
-function selectEmpresa(i,ev){
-if(ev)ev.preventDefault();
-var e=EMPRESAS[i];
-$('f_destino').value=e.label;
-if(e.estado)$('f_estado').value=e.estado;
-if(e.municipio)$('f_municipio').value=e.municipio;
-if(e.parroquia)$('f_parroquia').value=e.parroquia;
-$('destinoSuggestions').classList.remove('show');
-}
-$('f_destino').addEventListener('input',renderDestinoSuggestions);
-$('f_destino').addEventListener('blur',function(){setTimeout(function(){$('destinoSuggestions').classList.remove('show');},180);});
-
-function collectForm(){return{fecha:todayStr(),placa:$('f_placa').value.trim().toUpperCase(),cajas:$('f_cajas').value.trim(),especie:$('f_especie').value,presentacion:$('f_presentacion').value,propietario:$('f_propietario').value.trim(),ciPropietario:$('f_ciPropPrefijo').value+$('f_ciPropietario').value.trim(),chofer:$('f_chofer').value.trim(),ciChofer:$('f_ciChofPrefijo').value+$('f_ciChofer').value.trim(),cgt:$('f_cgt').value.trim(),venceCgt:$('f_vence').value,marca:$('f_marca').value.trim(),destino:$('f_destino').value.trim(),estado:$('f_estado').value.trim(),municipio:$('f_municipio').value.trim(),parroquia:$('f_parroquia').value.trim(),recibe:$('f_recibe').value.trim(),telefono:$('f_telefono').value.trim(),origen:$('f_origen').value.trim(),productor:$('f_productor').value.trim(),observacion:$('f_observacion').value.trim()};}
-function validateForm(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_presentacion','la presentación'],['f_propietario','el propietario'],['f_ciPropietario','la C.I. del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el CGT'],['f_vence','el vencimiento del CGT'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
-for(var i=0;i<req.length;i++){var id=req[i][0];if(!$(id).value.trim()){toast('⚠️ Falta '+req[i][1]);$(id).focus();$(id).style.borderColor='#c0392b';setTimeout(function(el){el.style.borderColor='';}.bind(null,$(id)),2000);return false;}}
-return true;}
-function validateForWhatsApp(){var req=[['f_placa','la placa'],['f_cajas','las cajas'],['f_presentacion','la presentación'],['f_marca','la marca'],['f_propietario','el propietario'],['f_ciPropietario','la C.I./RIF del propietario'],['f_chofer','el chofer'],['f_ciChofer','la C.I. del chofer'],['f_cgt','el N° de CGT'],['f_vence','el vencimiento del CGT'],['f_estado','el estado'],['f_municipio','el municipio'],['f_parroquia','la parroquia'],['f_recibe','el nombre de quien recibe'],['f_telefono','el teléfono de quien recibe'],['f_destino','el destino'],['f_origen','el origen'],['f_productor','el productor']];
-for(var i=0;i<req.length;i++){var id=req[i][0];if(!$(id).value.trim()){toast('⚠️ Falta '+req[i][1]+' para enviar por WhatsApp');$(id).focus();$(id).style.borderColor='#c0392b';setTimeout(function(el){el.style.borderColor='';}.bind(null,$(id)),2500);return false;}}
-return true;}
-function saveToHistory(){if(!validateForm())return;var data=collectForm();var h=getHistory();h.unshift(Object.assign({},data,{id:Date.now(),savedAt:new Date().toISOString()}));setHistory(h);toast('💾 Guardado en historial');}
-function clearForm(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha'&&i.type!=='checkbox')i.value='';});$('f_especie').value='Sardina';$('f_presentacion').value='';$('f_mismoProp').checked=false;toggleMismoProp();$('cgtAlert').className='cgt-alert';$('placaHint').style.display='none';toast('🧹 Formulario limpio');}
-function buildMessage(d){
-var L=[['*Solicitud de Autorización*',''],['Fecha',d.fecha],['Placa',d.placa],['Cajas',d.cajas],['Especie',d.especie||'Sardina'],['Presentación',d.presentacion||d.sardina||''],['Propietario',d.propietario],['C.I.',d.ciPropietario],['Chofer',d.chofer],['C.I.',d.ciChofer],['CGT',d.cgt],['Vence CGT',fmtDate(d.venceCgt)],['Marca',d.marca],['Destino',d.destino],['Estado',d.estado],['Municipio',d.municipio],['Parroquia',d.parroquia],['Recibe',d.recibe],['Teléfono',d.telefono],['Origen',d.origen],['Productor',d.productor]];
-if(d.observacion && d.observacion.trim()){L.push(['Observación',d.observacion]);}
-var m='';
-for(var i=0;i<L.length;i++){
-if(i===0){m+=L[i][0]+NL+NL;continue;}
-m+=PIN+' *'+L[i][0]+':* '+L[i][1];
-if(i<L.length-1)m+=NL;
-}
-return m;}
-function sendWhatsApp(){if(!validateForWhatsApp())return;var data=collectForm();window.open('https://wa.me/?text='+encodeURIComponent(buildMessage(data)),'_blank');}
-
-/* === PEGADO DIRECTO DESDE PORTAPAPELES ============================ */
-async function pasteData(){
-    try{
-        if(!navigator.clipboard || !navigator.clipboard.readText){
-            toast('⚠️ Tu navegador no permite leer el portapapeles');
-            return;
-        }
-        var text = await navigator.clipboard.readText();
-        if(!text || !text.trim()){ toast('📋 El portapapeles está vacío'); return; }
-        fillFromText(text, '');
-    }catch(e){
-        toast('⚠️ Permite el acceso al portapapeles e intenta de nuevo');
-    }
-}
-function parseDateValue(v){
-    if(!v) return '';
-    v = String(v).trim();
-    if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-    var m = v.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
-    if(m){
-        var dd = m[1].padStart(2,'0'), mm = m[2].padStart(2,'0'), yyyy = m[3];
-        if(yyyy.length === 2) yyyy = '20' + yyyy;
-        return yyyy + '-' + mm + '-' + dd;
-    }
-    return '';
-}
-function applyCIValue(prefixId, inputId, value){
-    var pre = $(prefixId), inp = $(inputId);
-    var str = String(value||'').trim().toUpperCase();
-    var prefix = 'V-';
-    if(str.charAt(0) === 'J'){ prefix = 'J-'; str = str.slice(1).replace(/^[\-\s\.]+/,''); }
-    else if(str.charAt(0) === 'E'){ prefix = 'E-'; str = str.slice(1).replace(/^[\-\s\.]+/,''); }
-    else if(str.charAt(0) === 'V'){ prefix = 'V-'; str = str.slice(1).replace(/^[\-\s\.]+/,''); }
-    var clean = str.replace(/[^0-9A-Z]/gi,'');
-    pre.value = prefix;
-    inp.value = (prefix === 'J-') ? clean : formatCI(clean);
-}
-
-// Parser mejorado para CGT
-function parseCGTText(rawText) {
-    var data = {};
-    // Limpiar texto: reemplazar saltos de línea y espacios múltiples por un solo espacio
-    var text = rawText.replace(/\s+/g, ' ').trim();
-
-    // Placa (Acepta Placa/Matrícula o Placa)
-    var placaMatch = text.match(/(?:Placa[\/\s]*Matr[íi]cula|Placa)[:\s]*([A-Z0-9]{5,10})/i);
-    if (placaMatch) data.placa = placaMatch[1].toUpperCase();
-
-    // Marca (Detiene la captura antes de Modelo, Tipo, Serial, etc.)
-    var marcaMatch = text.match(/Marca[:\s]*([A-Za-z0-9\s\-\.]+?)(?=\s*Modelo|\s*Tipo|\s*Serial|\s*Capacidad|\s*Año|\s*$)/i);
-    if (marcaMatch) data.marca = marcaMatch[1].trim();
-
-    // CGT (Busca la palabra CGT y toma el número largo)
-    var cgtMatch = text.match(/(?:CGT|C\.G\.T\.?)[:\s]*([A-Z0-9]{8,20})/i);
-    if (cgtMatch) {
-        data.cgt = cgtMatch[1].replace(/CGT/i, '').trim();
-    } else {
-        var fallbackCgt = text.match(/\b(CGT[0-9]{10,15})\b/i);
-        if (fallbackCgt) data.cgt = fallbackCgt[1].replace(/CGT/i, '').trim();
-    }
-
-    // Vencimiento
-    var venceMatch = text.match(/(?:Fecha\s*De\s*Vencimiento|Vencimiento)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
-    if (venceMatch) data.venceCgt = venceMatch[1];
-
-    // Propietario (Captura hasta que encuentre Tipo o N° de documento)
-    var propMatch = text.match(/Nombre\s*y\s*apellido[s]?[:\s]*(.*?)(?=\s*Tipo\s*de\s*documento|\s*N[°o]\s*de\s*documento|\s*$)/i);
-    if (propMatch) data.propietario = propMatch[1].trim();
-
-    // Cédula / RIF
-    var tipoDoc = text.match(/Tipo\s*de\s*documento[:\s]*([VEJ])/i);
-    var numDoc = text.match(/N[°o]\s*de\s*documento[:\s]*([0-9\.]+)/i);
-    
-    if (tipoDoc && numDoc) {
-        data.ciPropietario = tipoDoc[1].toUpperCase() + '-' + numDoc[1].replace(/[\.\s]/g, '');
-    } else if (numDoc) {
-        data.ciPropietario = 'J-' + numDoc[1].replace(/[\.\s]/g, ''); // Por defecto J si no se detecta letra
-    } else {
-        var rifMatch = text.match(/\b([VEJ])[-\s]*([0-9]{7,9})\b/i);
-        if (rifMatch) data.ciPropietario = rifMatch[1].toUpperCase() + '-' + rifMatch[2];
-    }
-
-    return data;
-}
-
-// Parser genérico para WhatsApp y textos informales
-function parsePastedText(text){
-    var data = {}, context = null;
-    var lines = String(text||'').split(/\r?\n/);
-    var labelMap = {
-        'placa':'placa','placa del vehiculo':'placa','numero de placa':'placa',
-        'cajas':'cajas','cantidad de cajas':'cajas','numero de cajas':'cajas',
-        'n cajas':'cajas','num cajas':'cajas','cant cajas':'cajas',
-        'especie':'especie','tipo de pescado':'especie','pescado':'especie',
-        'presentacion':'presentacion','presentacion del producto':'presentacion','corte':'presentacion',
-        'propietario':'propietario','nombre del propietario':'propietario',
-        'chofer':'chofer','conductor':'chofer','nombre del chofer':'chofer','nombre del conductor':'chofer',
-        'cgt':'cgt','n cgt':'cgt','n de cgt':'cgt','num cgt':'cgt','numero cgt':'cgt',
-        'numero de cgt':'cgt','cgt n':'cgt',
-        'vence cgt':'venceCgt','vence':'venceCgt','vencimiento':'venceCgt',
-        'vencimiento cgt':'venceCgt','fecha de vencimiento':'venceCgt','fecha de vencimiento cgt':'venceCgt',
-        'marca':'marca','marca del vehiculo':'marca',
-        'destino':'destino','empresa destino':'destino',
-        'estado':'estado','municipio':'municipio','parroquia':'parroquia',
-        'recibe':'recibe','quien recibe':'recibe','nombre de quien recibe':'recibe','receptor':'recibe',
-        'telefono':'telefono','tlf':'telefono','tel':'telefono','celular':'telefono','numero de telefono':'telefono',
-        'origen':'origen','puerto':'origen','productor':'productor','maquina':'productor','picadora':'productor',
-        'observacion':'observacion','observaciones':'observacion','nota':'observacion','notas':'observacion'
-    };
-    for(var i=0;i<lines.length;i++){
-        var line = lines[i];
-        var c = line.indexOf(':');
-        if(c === -1) continue;
-        var labelRaw = line.slice(0,c);
-        var value = line.slice(c+1).replace(/\*/g,'').trim();
-        if(!value) continue;
-        var label = labelRaw.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g,' ')
-            .replace(/\s+/g,' ').trim().toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-        if(!label) continue;
-        var isCI = /^(c\s*i|cedula|rif|documento)\b/.test(label);
-        var isProp = /propietario/.test(label);
-        var isChof = /chofer|conductor/.test(label);
-        if(isCI){
-            if(isProp) data.ciPropietario = value;
-            else if(isChof) data.ciChofer = value;
-            else if(context === 'propietario') data.ciPropietario = value;
-            else if(context === 'chofer') data.ciChofer = value;
-            else{ if(!data.ciPropietario) data.ciPropietario = value; else if(!data.ciChofer) data.ciChofer = value; }
-            continue;
-        }
-        if(isProp){ data.propietario = value; context = 'propietario'; continue; }
-        if(isChof){ data.chofer = value; context = 'chofer'; continue; }
-        var field = labelMap[label];
-        if(!field){
-            var keys = Object.keys(labelMap);
-            for(var k=0;k<keys.length;k++){ if(label.indexOf(keys[k]) > -1){ field = labelMap[keys[k]]; break; } }
-        }
-        if(field) {
-            if(field === 'cgt') value = value.replace(/CGT/gi, '').trim();
-            if(!data[field]) data[field] = value;
-        }
-    }
-    return data;
-}
-
-function parseQRText(qrText) {
-    if (!qrText) return {};
-    try {
-        if (qrText.trim().startsWith('{')) {
-            var json = JSON.parse(qrText);
-            var data = {};
-            if(json.placa) data.placa = json.placa;
-            if(json.marca) data.marca = json.marca;
-            if(json.cgt) data.cgt = json.cgt.toString().replace(/CGT/i, '');
-            if(json.venceCgt || json.vencimiento) data.venceCgt = json.venceCgt || json.vencimiento;
-            if(json.propietario) data.propietario = json.propietario;
-            if(json.ciPropietario || json.rif || json.cedula) data.ciPropietario = json.ciPropietario || json.rif || json.cedula;
-            return data;
-        }
-        if (qrText.includes('?')) {
-            var url = new URL(qrText);
-            var data = {};
-            if(url.searchParams.has('placa')) data.placa = url.searchParams.get('placa');
-            if(url.searchParams.has('cgt')) data.cgt = url.searchParams.get('cgt').replace(/CGT/i, '');
-            return data;
-        }
-    } catch(e) {}
-    return {};
-}
-
-function fillFromText(text, qrText){
-    text = text || '';
-    qrText = qrText || '';
-    
-    var rawTextToParse = text + '\n' + qrText;
-    var qrData = parseQRText(qrText);
-    var genericData = parsePastedText(rawTextToParse);
-    var cgtData = parseCGTText(rawTextToParse);
-    
-    var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT[:\s]*\d{8,}/i.test(text) || Object.keys(cgtData).length > 0 || /CGT/i.test(qrText);
-    
-    var data = {};
-    if (isCGTDocument) {
-        data = Object.assign({}, cgtData);
-        for (var key in qrData) {
-            if (!data[key] || data[key].trim() === '') {
-                data[key] = qrData[key];
-            }
-        }
-    } else {
-        data = genericData;
-    }
-    
-    if (!Object.keys(data).length || Object.values(data).every(v => !v)) {
-        if (Object.keys(genericData).length) data = genericData;
-        else {
-            toast('⚠️ No se reconoció información válida');
-            return;
-        }
-    }
-
-    switchView('form');
-    clearFormSilent();
-    $('f_ciPropPrefijo').value = 'V-';
-    $('f_ciChofPrefijo').value = 'V-';
-    
-    var filled = 0;
-    if(data.placa){ $('f_placa').value = data.placa.toUpperCase(); filled++; }
-    if(data.cajas){ var cz = String(data.cajas).replace(/[^0-9]/g,''); if(cz){ $('f_cajas').value = cz; filled++; } }
-    if(data.especie){
-        var esp = data.especie.toLowerCase();
-        if(esp.indexOf('machuelo') > -1){ $('f_especie').value = 'Machuelo'; filled++; }
-        else if(esp.indexOf('sardina') > -1){ $('f_especie').value = 'Sardina'; filled++; }
-    }
-    if(data.presentacion){
-        var pres = data.presentacion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-        var sel = $('f_presentacion');
-        for(var si=0;si<sel.options.length;si++){
-            var optN = sel.options[si].value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-            if(optN && pres.indexOf(optN) > -1){ sel.selectedIndex = si; filled++; break; }
-        }
-    }
-    if(data.propietario){ $('f_propietario').value = data.propietario; filled++; }
-    if(data.ciPropietario){ applyCIValue('f_ciPropPrefijo','f_ciPropietario', data.ciPropietario); filled++; }
-    if(data.chofer){ $('f_chofer').value = data.chofer; filled++; }
-    if(data.ciChofer){ applyCIValue('f_ciChofPrefijo','f_ciChofer', data.ciChofer); filled++; }
-    if(data.cgt){ 
-        var cgtClean = String(data.cgt).replace(/CGT/gi, '').trim(); 
-        $('f_cgt').value = cgtClean; 
-        filled++; 
-    }
-    if(data.venceCgt){ var iso = parseDateValue(data.venceCgt); if(iso){ $('f_vence').value = iso; filled++; } }
-    if(data.marca){ $('f_marca').value = data.marca; filled++; }
-    
-    if (!isCGTDocument) {
-        if(data.destino){ $('f_destino').value = data.destino; filled++; }
-        if(data.estado){ $('f_estado').value = data.estado; filled++; }
-        if(data.municipio){ $('f_municipio').value = data.municipio; filled++; }
-        if(data.parroquia){ $('f_parroquia').value = data.parroquia; filled++; }
-        if(data.recibe){ $('f_recibe').value = data.recibe; filled++; }
-        if(data.telefono){ $('f_telefono').value = data.telefono; filled++; }
-        if(data.origen){ $('f_origen').value = data.origen; filled++; }
-        if(data.productor){ $('f_productor').value = data.productor; filled++; }
-        if(data.observacion){ $('f_observacion').value = data.observacion; filled++; }
-    }
-    
-    checkCGT();
-    var same = !!( $('f_propietario').value && $('f_chofer').value &&
-        $('f_propietario').value === $('f_chofer').value &&
-        $('f_ciPropietario').value === $('f_ciChofer').value &&
-        $('f_ciPropPrefijo').value === $('f_ciChofPrefijo').value &&
-        $('f_ciPropPrefijo').value !== 'J-' );
-    $('f_mismoProp').checked = same;
-    toggleMismoProp();
-    
-    if(filled > 0) toast('✓ ' + filled + ' campo' + (filled>1?'s':'') + ' rellenado' + (filled>1?'s':''));
-    else toast('⚠️ No se reconoció información válida');
-}
-
-/* === ESCANEO DE IMAGEN / PDF CON OCR Y QR ========================= */
-function scanDocument(){
-    var inp = document.getElementById('scanInput');
-    if(inp) inp.click();
-}
-async function handleScanFile(event){
-    var file = event.target.files && event.target.files[0];
-    event.target.value = '';
-    if(!file) return;
-    if(!file.type.startsWith('image/') && file.type !== 'application/pdf'){
-        toast('⚠️ Formato no soportado. Usa imagen o PDF.');
-        return;
-    }
-    showLoading('Procesando documento…', 'Preparando');
-    try{
-        var result = { ocr: '', qr: '' };
-        if(file.type === 'application/pdf'){
-            result = await extractPdfText(file);
-        }else{
-            result = await extractImageText(file);
-        }
-        hideLoading();
-        if((!result.ocr || !result.ocr.trim()) && (!result.qr || !result.qr.trim())){
-            toast('⚠️ No se detectó texto ni código QR en el documento');
-            return;
-        }
-        fillFromText(result.ocr, result.qr);
-    }catch(e){
-        hideLoading();
-        console.error(e);
-        toast('⚠️ Error al procesar el documento');
-    }
-}
-
-async function detectQRFromCanvas(canvas) {
-    if ('BarcodeDetector' in window) {
-        try {
-            const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-            const barcodes = await barcodeDetector.detect(canvas);
-            if (barcodes.length > 0) return barcodes[0].rawValue;
-        } catch(e) { console.warn('BarcodeDetector falló', e); }
-    }
-    try {
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-        if (code) return code.data;
-    } catch(e) { console.warn('jsQR falló', e); }
-    return '';
-}
-
-async function extractImageText(file){
-    var T = await loadTesseract();
-    var jsQR = await loadJsQR();
-    
-    updateLoadingSub('Preparando imagen…');
-    var img = await new Promise((resolve, reject) => {
-        var i = new Image();
-        i.onload = () => resolve(i);
-        i.onerror = reject;
-        i.src = URL.createObjectURL(file);
-    });
-    
-    var canvas = document.createElement('canvas');
-    var maxDim = 2000; 
-    var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-    canvas.width = img.width * scale;
-    canvas.height = img.height * scale;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    
-    updateLoadingSub('Buscando código QR…');
-    var qrText = await detectQRFromCanvas(canvas);
-    
-    updateLoadingSub('Reconociendo texto (OCR)…');
-    var result = await T.recognize(canvas, 'spa', {
-        logger: function(m){
-            if(m.status === 'recognizing text'){
-                updateLoadingSub('Leyendo texto: ' + Math.round((m.progress||0)*100) + '%');
-            }else if(m.status){
-                updateLoadingSub(m.status);
-            }
-        }
-    });
-    return { ocr: result.data.text, qr: qrText };
-}
-
-async function extractPdfText(file){
-    var pdfjsLib = await loadPdfJs();
-    var jsQR = await loadJsQR();
-    updateLoadingSub('Leyendo PDF…');
-    var buf = await file.arrayBuffer();
-    var pdf = await pdfjsLib.getDocument({data: buf}).promise;
-    var text = '';
-    var qrText = '';
-    var maxPages = Math.min(pdf.numPages, 3);
-    
-    for(var i=1; i<=maxPages; i++){
-        var page = await pdf.getPage(i);
-        var content = await page.getTextContent();
-        var pageText = content.items.map(function(it){return it.str;}).join(' ').trim();
-        if(pageText) text += pageText + '\n';
-    }
-    
-    updateLoadingSub('Buscando código QR…');
-    try {
-        var page1 = await pdf.getPage(1);
-        var viewport = page1.getViewport({scale: 2});
-        var canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        var ctx = canvas.getContext('2d');
-        await page1.render({canvasContext: ctx, viewport: viewport}).promise;
-        qrText = await detectQRFromCanvas(canvas);
-    } catch(e) {
-        console.warn('QR extraction from PDF failed', e);
-    }
-
-    if(text.trim()) return { ocr: text, qr: qrText };
-    
-    updateLoadingSub('Documento escaneado, aplicando OCR…');
-    var page1 = await pdf.getPage(1);
-    var viewport = page1.getViewport({scale: 2});
-    var canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    var ctx = canvas.getContext('2d');
-    await page1.render({canvasContext: ctx, viewport: viewport}).promise;
-    
-    var T = await loadTesseract();
-    var result = await T.recognize(canvas, 'spa', {
-        logger: function(m){
-            if(m.status === 'recognizing text'){
-                updateLoadingSub('Leyendo texto: ' + Math.round((m.progress||0)*100) + '%');
-            }
-        }
-    });
-    return { ocr: result.data.text, qr: qrText };
-}
-
-function loadTesseract(){
-    if(window.Tesseract) return Promise.resolve(window.Tesseract);
-    return new Promise(function(resolve, reject){
-        var s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-        s.onload = function(){ resolve(window.Tesseract); };
-        s.onerror = function(){ reject(new Error('No se pudo cargar el OCR')); };
-        document.head.appendChild(s);
-    });
-}
-function loadPdfJs(){
-    if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
-    return new Promise(function(resolve, reject){
-        var s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
-        s.onload = function(){
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-            resolve(window.pdfjsLib);
-        };
-        s.onerror = function(){ reject(new Error('No se pudo cargar PDF.js')); };
-        document.head.appendChild(s);
-    });
-}
-function loadJsQR() {
-    if(window.jsQR) return Promise.resolve(window.jsQR);
-    return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
-        s.onload = () => resolve(window.jsQR);
-        s.onerror = () => reject(new Error('No se pudo cargar el lector QR'));
-        document.head.appendChild(s);
-    });
-}
-function showLoading(main, sub){
-    document.getElementById('loadingText').textContent = main || 'Procesando…';
-    document.getElementById('loadingSub').textContent = sub || '';
-    document.getElementById('loadingOverlay').classList.add('show');
-}
-function updateLoadingSub(txt){
-    var el = document.getElementById('loadingSub');
-    if(el) el.textContent = txt || '';
-}
-function hideLoading(){
-    document.getElementById('loadingOverlay').classList.remove('show');
-}
-
-/* === HISTORIAL =================================================== */
-var currentFilter='placa';
-function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-tab').forEach(function(t){t.classList.toggle('active',t.dataset.f===f);});
-var labels={placa:'Buscar por placa…',destino:'Buscar por destino…',chofer:'Buscar por chofer…'};
-$('searchInput').placeholder=labels[f];$('searchInput').value='';renderHistory();}
-function renderHistory(){var q=$('searchInput').value.trim().toLowerCase();var all=getHistory();
-var filtered=q?all.filter(function(h){return(h[currentFilter]||'').toLowerCase().indexOf(q)>-1;}):all;
-$('resultsCount').textContent=filtered.length+' registro'+(filtered.length!==1?'s':'')+(q?' encontrado'+(filtered.length!==1?'s':''):' en total');
-var list=$('historyList');
-if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="big">🗂️</div><div style="font-weight:700">Sin registros</div><div style="font-size:.78rem;margin-top:4px">'+(q?'No hay coincidencias':'Guarde su primera solicitud')+'</div></div>';return;}
-list.innerHTML=filtered.map(function(h){var esp=h.especie||'Sardina';var pres=h.presentacion||h.sardina||'';return '<div class="history-item"><div class="history-header"><div><div class="history-plate">🚗 '+esc(h.placa)+'</div><div style="font-size:.75rem;color:var(--text-light);margin-top:2px">'+esc(h.chofer)+'</div></div><div class="history-date">'+fmtDate(h.savedAt?h.savedAt.slice(0,10):'')+'</div></div><div class="history-meta">📍 <strong>'+esc(h.destino)+'</strong><br>🐟 '+esc(esp+(pres?' '+pres:''))+' · '+esc(h.cajas)+' cajas · Origen: '+esc(h.origen)+'</div><div class="history-actions"><button class="hbtn hbtn-view" onclick="viewRecord('+h.id+')">👁️ Ver</button><button class="hbtn hbtn-edit" onclick="editRecord('+h.id+')">✏️ Editar</button><button class="hbtn hbtn-new" onclick="newFromRecord('+h.id+')">📄 Nueva</button><button class="hbtn hbtn-del" onclick="deleteRecord('+h.id+')">🗑️</button></div></div>';}).join('');}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function viewRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;
-var fields=[['Fecha',h.fecha],['Placa',h.placa],['Cajas',h.cajas],['Especie',h.especie||'Sardina'],['Presentación',h.presentacion||h.sardina||''],['Propietario',h.propietario],['C.I. Propietario',h.ciPropietario],['Chofer',h.chofer],['C.I. Chofer',h.ciChofer],['CGT',h.cgt],['Vence CGT',fmtDate(h.venceCgt)],['Marca',h.marca],['Destino',h.destino],['Estado',h.estado],['Municipio',h.municipio],['Parroquia',h.parroquia],['Recibe',h.recibe],['Teléfono',h.telefono],['Origen',h.origen],['Productor',h.productor]];
-var html='<div class="detail-grid">';
-fields.forEach(function(f){html+='<div class="detail-item"><div class="detail-label">'+f[0]+'</div><div class="detail-value">'+esc(f[1])+'</div></div>';});
-html+='<div class="detail-item full"><div class="detail-label">Observación</div><div class="detail-value">'+esc(h.observacion)+'</div></div></div>';
-html+='<div class="btn-row" style="margin-top:16px"><button class="btn btn-whatsapp btn-sm" style="flex:1" onclick="sendRecordWA('+h.id+')">📱 WhatsApp</button><button class="btn btn-secondary btn-sm" style="flex:1" onclick="closeModal()">Cerrar</button></div>';
-$('modalBody').innerHTML=html;$('modalTitle').textContent='📋 '+h.placa;$('modalOverlay').classList.add('show');document.body.style.overflow='hidden';}
-function closeModal(){$('modalOverlay').classList.remove('show');document.body.style.overflow='';}
-function editRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;switchView('form');$('f_placa').value=h.placa;fillForm(h);$('placaHint').style.display='block';toast('✏️ Modifique y guarde como nueva solicitud');window.scrollTo({top:0,behavior:'smooth'});}
-function newFromRecord(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;switchView('form');clearFormSilent();$('f_placa').value=h.placa;fillForm(h);$('placaHint').style.display='block';toast('📄 Nueva solicitud basada en '+h.placa);window.scrollTo({top:0,behavior:'smooth'});}
-function clearFormSilent(){document.querySelectorAll('#authForm input, #authForm textarea').forEach(function(i){if(i.id!=='f_fecha'&&i.type!=='checkbox')i.value='';});$('f_especie').value='Sardina';$('f_presentacion').value='';$('f_mismoProp').checked=false;$('cgtAlert').className='cgt-alert';}
-function deleteRecord(id){if(!confirm('¿Eliminar este registro del historial?'))return;setHistory(getHistory().filter(function(x){return x.id!==id;}));renderHistory();toast('🗑️ Registro eliminado');}
-function sendRecordWA(id){var h=getHistory().find(function(x){return x.id===id;});if(!h)return;window.open('https://wa.me/?text='+encodeURIComponent(buildMessage(h)),'_blank');}
-function switchView(v){var isForm=v==='form';$('viewForm').classList.toggle('hidden',!isForm);$('viewHistory').classList.toggle('hidden',isForm);$('tabForm').classList.toggle('active',isForm);$('tabHistory').classList.toggle('active',!isForm);$('navForm').classList.toggle('active',isForm);$('navHistory').classList.toggle('active',!isForm);if(!isForm)renderHistory();window.scrollTo({top:0});}
-$('f_fecha').value=todayStr();
-migrateHistory();
-updateBadges();
-renderHistory();
-</script>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/identity.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/balance.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
