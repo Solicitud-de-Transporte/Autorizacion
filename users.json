@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-04T18:29:08.294Z",
+  "updated": "2026-11-04T22:16:18.846Z",
   "adminWhatsApp": "+584262840546",
   "adminId": "4M4N3C3R",
   "users": [
@@ -12,7 +12,7 @@
     {
       "id": "usr_0oe2kbp3",
       "name": "Nurbis Urbáez",
-      "role": "operador"
+      "role": "balance"
     }
   ]
 }
