@@ -1,12 +1,12 @@
 /* ============================================================
    Configuración global - Insopesca El Morro
-   v1.9.1
+   v2.0.1
    ============================================================ */
 
 window.CONFIG = Object.freeze({
 
   APP_NAME:       'Insopesca El Morro',
-  APP_VERSION:    '1.9.1',
+  APP_VERSION:    '2.0.1',
   STORAGE_PREFIX: 'insopesca_',
 
   ADMIN_WHATSAPP: '+584262840546',
@@ -35,11 +35,22 @@ window.CONFIG = Object.freeze({
   SYNC_ROOM:     'insopesca-puerto-el-morro-v1',
   SYNC_META_KEY: 'sync_room',
 
-  MULTI_PORT_ENABLED: false,
-  DEFAULT_PORT_NAME:  'El Morro',
-  AVAILABLE_PORTS: [
-    'El Morro'
+  DEFAULT_PORTS: [
+    'El Morro',
+    'Guaca',
+    'La Esmeralda'
   ],
+
+  portToRoom: function (portName) {
+    if (!portName) return 'insopesca-puerto-el-morro-v1';
+    var slug = String(portName)
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (!slug) slug = 'el-morro';
+    return 'insopesca-puerto-' + slug + '-v1';
+  },
 
   NOTIFICATIONS_ENABLED: true,
   NOTIF_ICON: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" rx="20" fill="%230d3b66"/%3E%3Ctext x="50" y="68" font-size="52" text-anchor="middle"%3E🐟%3C/text%3E%3C/svg%3E',
