@@ -1,8 +1,6 @@
 /* ============================================================
    App principal - Insopesca El Morro
-   v1.8.0:
-   - Avatar clicable → modal de perfil
-   - Sin foto en el registro inicial
+   v2.0.1: botón ⏳ Pendiente en modal de detalle
    ============================================================ */
 
 var NL = String.fromCharCode(10);
@@ -89,6 +87,29 @@ function dateToISO(s) {
   if (s.length >= 10 && s.indexOf('-') === 4) return s.slice(0, 10);
   return '';
 }
+function localDateFromISO(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+function normalizeText(s) {
+  return String(s == null ? '' : s).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function getRecordLocalISO(r) {
+  if (r && r.fecha) {
+    var iso = dateToISO(r.fecha);
+    if (iso) return iso;
+  }
+  if (r && r.savedAt) {
+    var local = localDateFromISO(r.savedAt);
+    if (local) return local;
+  }
+  return '';
+}
 
 function getHistory() { return state.records; }
 async function reloadRecordsFromDB() { state.records = await DB.getAllRecords(); }
@@ -108,6 +129,7 @@ async function migrateHistory() {
     if (r.status_changed_at === undefined) { r.status_changed_at = 0; changed = true; }
     if (r.sent_to_balance === undefined) { r.sent_to_balance = false; changed = true; }
     if (r.observations === undefined) { r.observations = ''; changed = true; }
+    if (r.room === undefined) { r.room = CONFIG.DEFAULT_PORTS[0] || 'El Morro'; changed = true; }
   }
   if (changed) await DB.putRecords(state.records);
 }
@@ -131,7 +153,8 @@ function updateProfileHeader(user) {
   if (nameEl) nameEl.textContent = user.name || 'Usuario';
   if (roleEl) {
     var roleLabel = { admin: 'Administrador', balance: 'Centro de Balance', operador: 'Operador' };
-    roleEl.textContent = roleLabel[user.role] || user.role || 'operador';
+    roleEl.textContent = (roleLabel[user.role] || user.role || 'operador') +
+      (user.port ? ' · ' + user.port : '');
   }
   if (photoEl) {
     if (user.photo) photoEl.innerHTML = '<img src="' + user.photo + '" alt="perfil">';
@@ -140,7 +163,6 @@ function updateProfileHeader(user) {
   }
 }
 
-/* ---------- Modal de perfil ---------- */
 function openProfileModal() {
   var user = Identity.getCurrentUser();
   if (!user) return;
@@ -153,16 +175,23 @@ function openProfileModal() {
   }
   var nameInp = $('profileModalName');
   if (nameInp) nameInp.value = user.name || '';
-  var portSel = $('profileModalPort');
-  if (portSel) {
-    portSel.innerHTML = CONFIG.AVAILABLE_PORTS
-      .map(p => '<option value="' + p + '">' + p + '</option>').join('');
-    portSel.value = user.port || CONFIG.DEFAULT_PORT_NAME;
-    portSel.disabled = CONFIG.AVAILABLE_PORTS.length <= 1;
+
+  var portRow = $('profileModalPortRow');
+  var canChangeRoom = (user.role === CONFIG.ROLES.ADMIN || user.role === CONFIG.ROLES.BALANCE);
+  if (portRow) portRow.style.display = canChangeRoom ? '' : 'none';
+
+  if (canChangeRoom) {
+    Identity.getAvailableRooms().then(rooms => {
+      var sel = $('profileModalPort');
+      if (sel) {
+        sel.innerHTML = rooms.map(p => '<option value="' + esc(p) + '">' + esc(p) + '</option>').join('');
+        sel.value = user.port || rooms[0] || 'El Morro';
+      }
+    });
   }
+
   var fileInp = $('profileModalPhoto');
   if (fileInp) fileInp.value = '';
-
   var overlay = $('profileModal');
   if (overlay) overlay.classList.add('show');
 }
@@ -182,7 +211,7 @@ async function onProfilePhotoSelected(event) {
   state.pendingProfilePhoto = dataUrl;
   var avatar = $('profileModalAvatar');
   if (avatar) avatar.innerHTML = '<img src="' + dataUrl + '" alt="perfil">';
-  toast('📷 Foto lista. Pulsa Guardar para aplicarla.');
+  toast('📷 Foto lista. Pulsa Guardar.');
 }
 
 async function removeProfilePhoto() {
@@ -190,26 +219,33 @@ async function removeProfilePhoto() {
   var user = Identity.getCurrentUser();
   var avatar = $('profileModalAvatar');
   if (avatar) avatar.textContent = ((user && user.name) || '?').charAt(0).toUpperCase();
-  toast('🗑️ Foto quitada. Pulsa Guardar para aplicar.');
+  toast('🗑️ Foto quitada. Pulsa Guardar.');
 }
 
 async function saveProfileChanges() {
   var nameInp = $('profileModalName');
-  var portSel = $('profileModalPort');
   var newName = nameInp ? nameInp.value.trim() : '';
-  var newPort = portSel ? portSel.value : CONFIG.DEFAULT_PORT_NAME;
-
   if (!newName || newName.length < 3) {
     toast('⚠️ El nombre debe tener al menos 3 caracteres');
     if (nameInp) nameInp.focus();
     return;
   }
+  var user = Identity.getCurrentUser();
+  var updates = { name: newName, photo: state.pendingProfilePhoto };
 
-  var updated = await Identity.updateProfile({
-    name: newName,
-    port: newPort,
-    photo: state.pendingProfilePhoto
-  });
+  var portRow = $('profileModalPortRow');
+  var portSel = $('profileModalPort');
+  var canChangeRoom = (user.role === CONFIG.ROLES.ADMIN || user.role === CONFIG.ROLES.BALANCE);
+  if (canChangeRoom && portRow && portRow.style.display !== 'none' && portSel && portSel.value) {
+    var oldPort = user.port;
+    var newPort = portSel.value;
+    if (oldPort !== newPort) {
+      updates.port = newPort;
+      await DB.setSyncRoom(CONFIG.portToRoom(newPort));
+    }
+  }
+
+  var updated = await Identity.updateProfile(updates);
   if (!updated) { toast('⚠️ No se pudo guardar'); return; }
 
   updateProfileHeader(updated);
@@ -218,11 +254,17 @@ async function saveProfileChanges() {
     actor: { id: updated.id, name: updated.name },
     target: { id: updated.id }
   });
+
+  if (updates.port && window.Sync && Sync.isConnected()) {
+    try { Sync.stop(); await Sync.start(); } catch (e) {}
+    await reloadRecordsFromDB();
+    await renderHistory();
+  }
+
   closeProfileModal();
   toast('✅ Perfil actualizado');
 }
 
-/* ---------- CI bindings ---------- */
 function bindCIFormat(inputId, prefixId) {
   var inp = $(inputId), pre = $(prefixId);
   if (!inp || !pre) return;
@@ -285,10 +327,10 @@ function checkCGT() {
   alert.className = 'cgt-alert show';
   if (diff < 0) {
     alert.classList.add('expired');
-    alert.innerHTML = '⚠️ <span>CGT VENCIDO hace ' + Math.abs(diff) + ' día' + (Math.abs(diff) > 1 ? 's' : '') + '. Puede continuar, pero verifique el documento.</span>';
+    alert.innerHTML = '⚠️ <span>CGT VENCIDO hace ' + Math.abs(diff) + ' día' + (Math.abs(diff) > 1 ? 's' : '') + '.</span>';
   } else if (diff <= 30) {
     alert.classList.add('warning');
-    alert.innerHTML = '⏳ <span>CGT vence en ' + diff + ' día' + (diff > 1 ? 's' : '') + '. Considere renovarlo pronto.</span>';
+    alert.innerHTML = '⏳ <span>CGT vence en ' + diff + ' día' + (diff > 1 ? 's' : '') + '.</span>';
   } else {
     alert.classList.add('ok');
     alert.innerHTML = '✅ <span>CGT vigente.</span>';
@@ -333,7 +375,8 @@ function renderMarcaSuggestions() {
   var q = $('f_marca').value.trim().toLowerCase();
   var list = $('marcaSuggestions');
   if (!q) { list.classList.remove('show'); list.innerHTML = ''; return; }
-  var matches = MARCAS_VEHICULOS.filter(function (m) { return m.toLowerCase().indexOf(q) > -1; });
+  var nq = normalizeText(q);
+  var matches = MARCAS_VEHICULOS.filter(function (m) { return normalizeText(m).indexOf(nq) > -1; });
   if (!matches.length) { list.classList.remove('show'); list.innerHTML = ''; return; }
   list.innerHTML = matches.map(function (m) {
     return '<div class="suggestion-item" onmousedown="selectMarca(\'' + m + '\',event)">' + m + '</div>';
@@ -349,9 +392,10 @@ function renderDestinoSuggestions() {
   var q = $('f_destino').value.trim().toLowerCase();
   var list = $('destinoSuggestions');
   if (!q) { list.classList.remove('show'); list.innerHTML = ''; return; }
+  var nq = normalizeText(q);
   var matches = [];
   for (var i = 0; i < EMPRESAS.length; i++) {
-    if (EMPRESAS[i].label.toLowerCase().indexOf(q) > -1) matches.push(i);
+    if (normalizeText(EMPRESAS[i].label).indexOf(nq) > -1) matches.push(i);
   }
   if (!matches.length) { list.classList.remove('show'); list.innerHTML = ''; return; }
   list.innerHTML = matches.map(function (i) {
@@ -432,7 +476,7 @@ function validateForWhatsApp() {
   for (var i = 0; i < req.length; i++) {
     var el = $(req[i][0]);
     if (!el || !el.value.trim()) {
-      toast('⚠️ Falta ' + req[i][1] + ' para enviar por WhatsApp');
+      toast('⚠️ Falta ' + req[i][1] + ' para WhatsApp');
       if (el) { el.focus(); el.style.borderColor = '#c0392b';
         (function (elem) { setTimeout(function () { elem.style.borderColor = ''; }, 2500); })(el); }
       return false;
@@ -477,6 +521,7 @@ async function saveToHistory() {
         observations: '',
         sent_to_balance: false,
         sent_to_balance_at: 0,
+        room: user.port || (CONFIG.DEFAULT_PORTS[0] || 'El Morro'),
         created_by: { id: user.id, name: user.name },
         updated_by: { id: user.id, name: user.name }
       });
@@ -533,7 +578,7 @@ async function doDeleteLocal() {
     if (window.Admin && Admin.refreshDashboard) Admin.refreshDashboard();
     if (window.Balance && Balance.renderList) Balance.renderList();
     toast('👁️ Oculto localmente');
-  } catch (e) { console.error('[doDeleteLocal]', e); toast('⚠️ Error al ocultar'); }
+  } catch (e) { console.error('[doDeleteLocal]', e); toast('⚠️ Error'); }
 }
 async function doDeleteGlobal() {
   var id = state.pendingDeleteId; if (!id) return;
@@ -549,7 +594,7 @@ async function doDeleteGlobal() {
     if (window.Admin && Admin.refreshDashboard) Admin.refreshDashboard();
     if (window.Balance && Balance.renderList) Balance.renderList();
     toast('🗑️ Borrado general aplicado');
-  } catch (e) { console.error('[doDeleteGlobal]', e); toast('⚠️ Error al borrar'); }
+  } catch (e) { console.error('[doDeleteGlobal]', e); toast('⚠️ Error'); }
 }
 
 function buildMessage(d) {
@@ -567,6 +612,7 @@ function buildMessage(d) {
   if (d.observacion && d.observacion.trim()) L.push(['Observación', d.observacion]);
   if (d.observations && d.observations.trim()) L.push(['Observación Balance', d.observations]);
   if (d.status) L.push(['Estado solicitud', d.status]);
+  if (d.room) L.push(['Sala', d.room]);
   var m = '';
   for (var i = 0; i < L.length; i++) {
     if (i === 0) { m += L[i][0] + NL + NL; continue; }
@@ -588,7 +634,7 @@ async function pasteData() {
     }
     var text = await navigator.clipboard.readText();
     if (!text || !text.trim()) { toast('📋 El portapapeles está vacío'); return; }
-    fillFromText(text, '');
+    fillFromText(text);
   } catch (e) { toast('⚠️ Permite el acceso al portapapeles e intenta de nuevo'); }
 }
 function parseDateValue(v) {
@@ -624,8 +670,8 @@ function parseCGTText(rawText) {
   var cgtMatch = text.match(/(?:CGT|C\.G\.T\.?)[:\s]*([A-Z0-9]{8,20})/i);
   if (cgtMatch) data.cgt = cgtMatch[1].replace(/CGT/i, '').trim();
   else {
-    var fallbackCgt = text.match(/\b(CGT[0-9]{10,15})\b/i);
-    if (fallbackCgt) data.cgt = fallbackCgt[1].replace(/CGT/i, '').trim();
+    var fb = text.match(/\b(CGT[0-9]{10,15})\b/i);
+    if (fb) data.cgt = fb[1].replace(/CGT/i, '').trim();
   }
   var venceMatch = text.match(/(?:Fecha\s*De\s*Vencimiento|Vencimiento)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
   if (venceMatch) data.venceCgt = venceMatch[1];
@@ -690,43 +736,15 @@ function parsePastedText(text) {
   }
   return data;
 }
-function parseQRText(qrText) {
-  if (!qrText) return {};
-  try {
-    if (qrText.trim().startsWith('{')) {
-      var json = JSON.parse(qrText); var data = {};
-      if (json.placa) data.placa = json.placa;
-      if (json.marca) data.marca = json.marca;
-      if (json.cgt) data.cgt = json.cgt.toString().replace(/CGT/i, '');
-      if (json.venceCgt || json.vencimiento) data.venceCgt = json.venceCgt || json.vencimiento;
-      if (json.propietario) data.propietario = json.propietario;
-      if (json.ciPropietario || json.rif || json.cedula) data.ciPropietario = json.ciPropietario || json.rif || json.cedula;
-      return data;
-    }
-    if (qrText.includes('?')) {
-      var url = new URL(qrText); var data2 = {};
-      if (url.searchParams.has('placa')) data2.placa = url.searchParams.get('placa');
-      if (url.searchParams.has('cgt')) data2.cgt = url.searchParams.get('cgt').replace(/CGT/i, '');
-      return data2;
-    }
-  } catch (e) {}
-  return {};
-}
-function fillFromText(text, qrText) {
-  text = text || ''; qrText = qrText || '';
-  var rawTextToParse = text + '\n' + qrText;
-  var qrData = parseQRText(qrText);
-  var genericData = parsePastedText(rawTextToParse);
-  var cgtData = parseCGTText(rawTextToParse);
-  var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT[:\s]*\d{8,}/i.test(text) || Object.keys(cgtData).length > 0 || /CGT/i.test(qrText);
-  var data = {};
-  if (isCGTDocument) {
-    data = Object.assign({}, cgtData);
-    for (var key in qrData) { if (!data[key] || data[key].trim() === '') data[key] = qrData[key]; }
-  } else data = genericData;
+function fillFromText(text) {
+  text = text || '';
+  var genericData = parsePastedText(text);
+  var cgtData = parseCGTText(text);
+  var isCGTDocument = /CERTIFICADO GENERAL DE TRANSPORTE/i.test(text) || /CGT[:\s]*\d{8,}/i.test(text) || Object.keys(cgtData).length > 0;
+  var data = isCGTDocument ? Object.assign({}, cgtData) : genericData;
+
   if (!Object.keys(data).length || Object.values(data).every(function (v) { return !v; })) {
-    if (Object.keys(genericData).length) data = genericData;
-    else { toast('⚠️ No se reconoció información válida'); return; }
+    toast('⚠️ No se reconoció información válida'); return;
   }
   startNewForm();
   $('f_ciPropPrefijo').value = 'V-';
@@ -735,15 +753,15 @@ function fillFromText(text, qrText) {
   if (data.placa) { $('f_placa').value = data.placa.toUpperCase(); filled++; }
   if (data.cajas) { var cz = String(data.cajas).replace(/[^0-9]/g, ''); if (cz) { $('f_cajas').value = cz; filled++; } }
   if (data.especie) {
-    var esp = data.especie.toLowerCase();
+    var esp = normalizeText(data.especie);
     if (esp.indexOf('machuelo') > -1) { $('f_especie').value = 'Machuelo'; filled++; }
     else if (esp.indexOf('sardina') > -1) { $('f_especie').value = 'Sardina'; filled++; }
   }
   if (data.presentacion) {
-    var pres = data.presentacion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    var pres = normalizeText(data.presentacion);
     var sel = $('f_presentacion');
     for (var si = 0; si < sel.options.length; si++) {
-      var optN = sel.options[si].value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      var optN = normalizeText(sel.options[si].value);
       if (optN && pres.indexOf(optN) > -1) { sel.selectedIndex = si; filled++; break; }
     }
   }
@@ -777,145 +795,6 @@ function fillFromText(text, qrText) {
   else toast('⚠️ No se reconoció información válida');
 }
 
-function scanDocument() {
-  var inp = document.getElementById('scanInput');
-  if (inp) inp.click();
-}
-async function handleScanFile(event) {
-  var file = event.target.files && event.target.files[0];
-  event.target.value = '';
-  if (!file) return;
-  if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-    toast('⚠️ Formato no soportado. Usa imagen o PDF.'); return;
-  }
-  showLoading('Procesando documento…', 'Preparando');
-  try {
-    var result = { ocr: '', qr: '' };
-    if (file.type === 'application/pdf') result = await extractPdfText(file);
-    else result = await extractImageText(file);
-    hideLoading();
-    if ((!result.ocr || !result.ocr.trim()) && (!result.qr || !result.qr.trim())) {
-      toast('⚠️ No se detectó texto ni código QR en el documento'); return;
-    }
-    fillFromText(result.ocr, result.qr);
-  } catch (e) {
-    hideLoading(); console.error(e); toast('⚠️ Error al procesar el documento');
-  }
-}
-async function detectQRFromCanvas(canvas) {
-  if ('BarcodeDetector' in window) {
-    try {
-      var bd = new BarcodeDetector({ formats: ['qr_code'] });
-      var codes = await bd.detect(canvas);
-      if (codes.length > 0) return codes[0].rawValue;
-    } catch (e) { console.warn('BarcodeDetector falló', e); }
-  }
-  try {
-    var ctx = canvas.getContext('2d');
-    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-    if (code) return code.data;
-  } catch (e) { console.warn('jsQR falló', e); }
-  return '';
-}
-async function extractImageText(file) {
-  var T = await loadTesseract(); await loadJsQR();
-  updateLoadingSub('Preparando imagen…');
-  var img = await new Promise(function (resolve, reject) {
-    var i = new Image(); i.onload = function () { resolve(i); }; i.onerror = reject; i.src = URL.createObjectURL(file);
-  });
-  var canvas = document.createElement('canvas');
-  var maxDim = 2000;
-  var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-  canvas.width = img.width * scale; canvas.height = img.height * scale;
-  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-  updateLoadingSub('Buscando código QR…');
-  var qrText = await detectQRFromCanvas(canvas);
-  updateLoadingSub('Reconociendo texto (OCR)…');
-  var result = await T.recognize(canvas, 'spa', {
-    logger: function (m) {
-      if (m.status === 'recognizing text') updateLoadingSub('Leyendo texto: ' + Math.round((m.progress || 0) * 100) + '%');
-      else if (m.status) updateLoadingSub(m.status);
-    }
-  });
-  return { ocr: result.data.text, qr: qrText };
-}
-async function extractPdfText(file) {
-  var pdfjsLib = await loadPdfJs(); await loadJsQR();
-  updateLoadingSub('Leyendo PDF…');
-  var buf = await file.arrayBuffer();
-  var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  var text = '', qrText = '';
-  var maxPages = Math.min(pdf.numPages, 3);
-  for (var i = 1; i <= maxPages; i++) {
-    var page = await pdf.getPage(i);
-    var content = await page.getTextContent();
-    var pageText = content.items.map(function (it) { return it.str; }).join(' ').trim();
-    if (pageText) text += pageText + '\n';
-  }
-  updateLoadingSub('Buscando código QR…');
-  try {
-    var page1 = await pdf.getPage(1);
-    var viewport = page1.getViewport({ scale: 2 });
-    var canvas = document.createElement('canvas');
-    canvas.width = viewport.width; canvas.height = viewport.height;
-    await page1.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
-    qrText = await detectQRFromCanvas(canvas);
-  } catch (e) { console.warn('QR from PDF failed', e); }
-  if (text.trim()) return { ocr: text, qr: qrText };
-  updateLoadingSub('Documento escaneado, aplicando OCR…');
-  var page1b = await pdf.getPage(1);
-  var vp2 = page1b.getViewport({ scale: 2 });
-  var c2 = document.createElement('canvas');
-  c2.width = vp2.width; c2.height = vp2.height;
-  await page1b.render({ canvasContext: c2.getContext('2d'), viewport: vp2 }).promise;
-  var T = await loadTesseract();
-  var result = await T.recognize(c2, 'spa', {
-    logger: function (m) { if (m.status === 'recognizing text') updateLoadingSub('Leyendo texto: ' + Math.round((m.progress || 0) * 100) + '%'); }
-  });
-  return { ocr: result.data.text, qr: qrText };
-}
-function loadTesseract() {
-  if (window.Tesseract) return Promise.resolve(window.Tesseract);
-  return new Promise(function (resolve, reject) {
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-    s.onload = function () { resolve(window.Tesseract); };
-    s.onerror = function () { reject(new Error('No se pudo cargar el OCR')); };
-    document.head.appendChild(s);
-  });
-}
-function loadPdfJs() {
-  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
-  return new Promise(function (resolve, reject) {
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
-    s.onload = function () {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-      resolve(window.pdfjsLib);
-    };
-    s.onerror = function () { reject(new Error('No se pudo cargar PDF.js')); };
-    document.head.appendChild(s);
-  });
-}
-function loadJsQR() {
-  if (window.jsQR) return Promise.resolve(window.jsQR);
-  return new Promise(function (resolve, reject) {
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
-    s.onload = function () { resolve(window.jsQR); };
-    s.onerror = function () { reject(new Error('No se pudo cargar el lector QR')); };
-    document.head.appendChild(s);
-  });
-}
-function showLoading(main, sub) {
-  document.getElementById('loadingText').textContent = main || 'Procesando…';
-  document.getElementById('loadingSub').textContent = sub || '';
-  document.getElementById('loadingOverlay').classList.add('show');
-}
-function updateLoadingSub(txt) { var el = document.getElementById('loadingSub'); if (el) el.textContent = txt || ''; }
-function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
-
 function setFilter(f) {
   currentFilter = f;
   document.querySelectorAll('.filter-tab').forEach(function (t) { t.classList.toggle('active', t.dataset.f === f); });
@@ -941,24 +820,37 @@ function statusBadge(status) {
 }
 
 async function renderHistory() {
-  var q = ($('searchInput') ? $('searchInput').value : '').trim().toLowerCase();
+  var qRaw = ($('searchInput') ? $('searchInput').value : '').trim();
+  var q = normalizeText(qRaw);
   var from = $('histFrom') ? $('histFrom').value : '';
   var to = $('histTo') ? $('histTo').value : '';
   var all = getHistory();
+  var currentUser = Identity.getCurrentUser();
+  var currentRoom = currentUser ? currentUser.port : null;
+
   var filtered = all.filter(function (h) {
+    if (currentRoom && h.room && h.room !== currentRoom) return false;
     if (from || to) {
-      var day = h.fecha ? dateToISO(h.fecha) : (h.savedAt ? h.savedAt.slice(0, 10) : '');
-      if (from && day && day < from) return false;
-      if (to && day && day > to) return false;
+      var day = getRecordLocalISO(h);
+      if (!day) return false;
+      if (from && day < from) return false;
+      if (to && day > to) return false;
     }
-    if (q && String(h[currentFilter] || '').toLowerCase().indexOf(q) === -1) return false;
+    if (q) {
+      var val = normalizeText(h[currentFilter] || '');
+      if (val.indexOf(q) === -1) return false;
+    }
     return true;
   });
-  $('resultsCount').textContent = filtered.length + ' registro' + (filtered.length !== 1 ? 's' : '') +
-    (q || from || to ? ' encontrado' + (filtered.length !== 1 ? 's' : '') : ' en total');
+
+  $('resultsCount').innerHTML = '<span class="room-indicator">📍 ' + esc(currentRoom || '—') + '</span> · ' +
+    filtered.length + ' registro' + (filtered.length !== 1 ? 's' : '') +
+    ((qRaw || from || to) ? ' encontrado' + (filtered.length !== 1 ? 's' : '') : ' en total');
+
   var list = $('historyList');
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state"><div class="big">🗂️</div><div style="font-weight:700">Sin registros</div><div style="font-size:.78rem;margin-top:4px">' + ((q || from || to) ? 'No hay coincidencias' : 'Guarde su primera solicitud') + '</div></div>';
+    list.innerHTML = '<div class="empty-state"><div class="big">🗂️</div><div style="font-weight:700">Sin registros</div><div style="font-size:.78rem;margin-top:4px">' +
+      ((qRaw || from || to) ? 'No hay coincidencias' : 'Guarde su primera solicitud') + '</div></div>';
     return;
   }
   var isAdmin = Identity.isAdmin();
@@ -978,10 +870,8 @@ async function renderHistory() {
     var sentBadge = h.sent_to_balance ? '<span class="status-badge status-sent">📤 Enviada</span>' : '';
     return '<div class="history-item">' +
       '<div class="history-header">' +
-        '<div>' +
-          '<div class="history-plate">🚗 ' + esc(h.placa) + '</div>' +
-          '<div style="font-size:.75rem;color:var(--text-light);margin-top:2px">' + esc(h.chofer) + '</div>' +
-        '</div>' +
+        '<div><div class="history-plate">🚗 ' + esc(h.placa) + '</div>' +
+          '<div style="font-size:.75rem;color:var(--text-light);margin-top:2px">' + esc(h.chofer) + '</div></div>' +
         '<div class="history-date">' + fmtDate(h.savedAt ? h.savedAt.slice(0, 10) : '') + '</div>' +
       '</div>' +
       '<div class="status-row">' + badge + sentBadge + newBadge + '</div>' +
@@ -1015,6 +905,7 @@ async function viewRecord(id) {
     ['Destino', h.destino], ['Estado', h.estado], ['Municipio', h.municipio],
     ['Parroquia', h.parroquia], ['Recibe', h.recibe], ['Teléfono', h.telefono],
     ['Origen', h.origen], ['Productor', h.productor],
+    ['Sala', h.room || '—'],
     ['Estado solicitud', h.status || 'pendiente']
   ];
   var html = '<div class="detail-grid">';
@@ -1036,7 +927,6 @@ async function viewRecord(id) {
       '</div></div>';
   }
   html += '</div>';
-
   html += '<div class="detail-actions">';
   html += '<button class="btn btn-whatsapp btn-sm" onclick="sendRecordWA(' + h.id + ')">📱 WhatsApp</button>';
   if (isMine && !h.sent_to_balance && (h.status || 'pendiente') === 'pendiente') {
@@ -1045,6 +935,7 @@ async function viewRecord(id) {
   if (canBalance) {
     html += '<button class="btn btn-approve btn-sm" onclick="approveFromDetail(' + h.id + ')">✅ Aprobar</button>';
     html += '<button class="btn btn-reject btn-sm" onclick="rejectFromDetail(' + h.id + ')">❌ Rechazar</button>';
+    html += '<button class="btn btn-pending btn-sm" onclick="pendingFromDetail(' + h.id + ')">⏳ Pendiente</button>';
   }
   html += '<button class="btn btn-secondary btn-sm" onclick="closeModal()">Cerrar</button>';
   html += '</div>';
@@ -1061,6 +952,7 @@ function closeModal() {
 async function sendToBalanceAction(id) { closeModal(); if (window.Balance) await Balance.sendToBalance(id); }
 function approveFromDetail(id) { closeModal(); if (window.Balance) Balance.openChange(id, 'aprobada'); }
 function rejectFromDetail(id) { closeModal(); if (window.Balance) Balance.openChange(id, 'rechazada'); }
+function pendingFromDetail(id) { closeModal(); if (window.Balance) Balance.openChange(id, 'pendiente'); }
 
 function editRecord(id) {
   var h = getHistory().find(function (x) { return x.id === id; });
@@ -1142,14 +1034,11 @@ function bindStaticEvents() {
   bindCIFormat('f_ciPropietario', 'f_ciPropPrefijo');
   bindCIFormat('f_ciChofer', 'f_ciChofPrefijo');
 
-  /* Avatar clicable → modal de perfil */
   var avatar = $('profilePhoto');
   if (avatar) {
     avatar.style.cursor = 'pointer';
     avatar.addEventListener('click', openProfileModal);
   }
-
-  /* Modal de perfil - eventos */
   if ($('profileModalSave')) $('profileModalSave').addEventListener('click', saveProfileChanges);
   if ($('profileModalCancel')) $('profileModalCancel').addEventListener('click', closeProfileModal);
   if ($('profileModalPhoto')) $('profileModalPhoto').addEventListener('change', onProfilePhotoSelected);
@@ -1174,6 +1063,8 @@ async function bootAfterIdentity(user) {
   bindStaticEvents();
   try {
     await DB.getDeviceId();
+    await DB.setSyncRoom(CONFIG.portToRoom(user.port));
+
     var mig = await DB.migrateFromLocalStorage();
     if (mig.migrated > 0) toast('✓ ' + mig.migrated + ' registro(s) migrado(s)');
     await reloadRecordsFromDB();
@@ -1186,11 +1077,9 @@ async function bootAfterIdentity(user) {
     if (window.Balance) {
       try { await Balance.ensureNotificationPermission(); } catch (e) {}
     }
-
     if (window.Backup) {
       try { await Backup.init(); } catch (e) { console.warn('[boot] Backup.init', e); }
     }
-
     if (window.Sync && CONFIG.SYNC_ENABLED) {
       try {
         await Sync.start();
