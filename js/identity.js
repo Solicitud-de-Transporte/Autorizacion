@@ -1,9 +1,6 @@
 /* ============================================================
    Identidad y autorización - Insopesca El Morro
-   v1.9.0:
-   - Generación de ID con crypto.getRandomValues
-   - Verificación anti-colisión contra users.json
-   - Soporte de usuarios suspendidos
+   v2.0.1: la sala del operador en users.json es autoritativa
    ============================================================ */
 
 window.Identity = (function () {
@@ -17,7 +14,6 @@ window.Identity = (function () {
   };
 
   let onAuthorizedCb = null;
-
   const $ = (id) => document.getElementById(id);
 
   function showModal(id) { const el = $(id); if (el) el.classList.add('show'); }
@@ -28,7 +24,6 @@ window.Identity = (function () {
   }
   function setText(id, txt) { const el = $(id); if (el) el.textContent = txt; }
 
-  /* ---------- users.json ---------- */
   async function loadUsersFile(force) {
     const now = Date.now();
     if (!force && state.usersFile && (now - state.usersFileFetchedAt) < CONFIG.USERS_CACHE_TTL) {
@@ -54,11 +49,9 @@ window.Identity = (function () {
     return (file.users || []).find(x => x && x.id === id) || null;
   }
 
-  /* ---------- generación de ID ---------- */
   function generateId(existingIds) {
     const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
     const canCrypto = !!(window.crypto && typeof window.crypto.getRandomValues === 'function');
-
     for (let attempt = 0; attempt < 5; attempt++) {
       let result = '';
       if (canCrypto) {
@@ -71,10 +64,8 @@ window.Identity = (function () {
       const id = 'usr_' + result;
       if (!existingIds || !existingIds.has(id)) return id;
     }
-    /* Fallback casi imposible: usa timestamp */
     return 'usr_' + Date.now().toString(36);
   }
-
   function buildExistingIdSet(file) {
     const set = new Set();
     if (file && Array.isArray(file.users)) {
@@ -83,7 +74,6 @@ window.Identity = (function () {
     return set;
   }
 
-  /* ---------- foto ---------- */
   async function compressPhoto(file) {
     const maxDim = CONFIG.PROFILE_PHOTO_MAX_DIM;
     const quality = CONFIG.PROFILE_PHOTO_QUALITY;
@@ -125,37 +115,34 @@ window.Identity = (function () {
     }
   }
 
-  /* ---------- autorización ---------- */
   async function checkAuthorization(id, force) {
     const u = await findUserById(id, force);
     const adminWhatsApp = (state.usersFile && state.usersFile.adminWhatsApp) || CONFIG.ADMIN_WHATSAPP;
 
     if (!u) return {
-      authorized: false,
-      suspended: false,
-      role: null,
-      name: null,
-      adminWhatsApp
+      authorized: false, suspended: false,
+      role: null, name: null, room: null, adminWhatsApp
     };
-
     if (u.suspended === true) return {
-      authorized: false,
-      suspended: true,
+      authorized: false, suspended: true,
       role: u.role || CONFIG.ROLES.OPERADOR,
-      name: u.name || '',
-      adminWhatsApp
+      name: u.name || '', room: u.room || null, adminWhatsApp
     };
-
     return {
-      authorized: true,
-      suspended: false,
+      authorized: true, suspended: false,
       role: u.role || CONFIG.ROLES.OPERADOR,
-      name: u.name || '',
-      adminWhatsApp
+      name: u.name || '', room: u.room || null, adminWhatsApp
     };
   }
 
-  /* ---------- UI ---------- */
+  async function getAvailableRooms() {
+    const file = await loadUsersFile(false);
+    if (file && Array.isArray(file.rooms) && file.rooms.length) {
+      return file.rooms.slice();
+    }
+    return CONFIG.DEFAULT_PORTS.slice();
+  }
+
   function showFirstBootModal() {
     const manualCb = $('ifb_manualToggle');
     if (manualCb) manualCb.checked = false;
@@ -166,15 +153,15 @@ window.Identity = (function () {
     const nameInp = $('ifb_name');
     if (nameInp) nameInp.value = '';
 
-    const portSel = $('ifb_port');
-    if (portSel) {
-      portSel.innerHTML = CONFIG.AVAILABLE_PORTS
-        .map(p => '<option value="' + p + '">' + p + '</option>').join('');
-      portSel.value = CONFIG.DEFAULT_PORT_NAME;
-    }
+    getAvailableRooms().then(rooms => {
+      const portSel = $('ifb_port');
+      if (portSel) {
+        portSel.innerHTML = rooms.map(p => '<option value="' + p + '">' + p + '</option>').join('');
+        portSel.value = rooms[0] || 'El Morro';
+      }
+    });
     showModal('identityFirstBootModal');
   }
-
   function hideFirstBootModal() { hideModal('identityFirstBootModal'); }
 
   function showWaitingScreen(id, suspended) {
@@ -188,19 +175,16 @@ window.Identity = (function () {
       : 'Tu ID fue enviado al administrador. Cuando te autorice podrás entrar.';
     showModal('identityWaitingModal');
   }
-
   function hideWaitingScreen() { hideModal('identityWaitingModal'); }
 
   function buildWhatsAppURL(name, id, port) {
-    const msg =
-      'Hola Emmanuel, soy ' + (name || '(sin nombre)') +
-      '. Mi ID es ' + id + ' (Puerto: ' + (port || '—') + '). ' +
+    const msg = 'Hola Emmanuel, soy ' + (name || '(sin nombre)') +
+      '. Mi ID es ' + id + ' (Sala: ' + (port || '—') + '). ' +
       'Solicito acceso a Insopesca El Morro.';
     const number = CONFIG.ADMIN_WHATSAPP.replace(/\D/g, '');
     return 'https://wa.me/' + number + '?text=' + encodeURIComponent(msg);
   }
 
-  /* ---------- submit primer boot ---------- */
   async function submitFirstBoot() {
     const nameInp = $('ifb_name');
     const name = nameInp ? nameInp.value.trim() : '';
@@ -213,7 +197,6 @@ window.Identity = (function () {
     const manualCb = $('ifb_manualToggle');
     const isAdmin = !!(manualCb && manualCb.checked);
     let id;
-
     if (isAdmin) {
       const manualInp = $('ifb_manualId');
       const manualId = manualInp ? manualInp.value.trim() : '';
@@ -224,19 +207,16 @@ window.Identity = (function () {
       }
       id = manualId;
     } else {
-      /* Generar ID con verificación anti-colisión */
       const file = await loadUsersFile(true);
       const existingIds = buildExistingIdSet(file);
       id = generateId(existingIds);
     }
 
     const portSel = $('ifb_port');
-    const port = portSel ? portSel.value : CONFIG.DEFAULT_PORT_NAME;
+    const port = portSel ? portSel.value : (CONFIG.DEFAULT_PORTS[0] || 'El Morro');
 
     const identity = {
-      id,
-      name,
-      port,
+      id, name, port,
       role: isAdmin ? CONFIG.ROLES.ADMIN : CONFIG.ROLES.OPERADOR,
       photo: null,
       createdAt: Date.now(),
@@ -258,8 +238,11 @@ window.Identity = (function () {
       if (auth.authorized) {
         identity.role = auth.role;
         identity.name = auth.name || identity.name;
+        /* Admin: en primera autorización, respetar la sala de users.json si existe */
+        if (auth.room) identity.port = auth.room;
         identity.authorized = true;
         await DB.setIdentity(identity);
+        await DB.setSyncRoom(CONFIG.portToRoom(identity.port));
         await DB.addAudit({
           action: 'login',
           actor: { id: identity.id, name: identity.name },
@@ -275,17 +258,15 @@ window.Identity = (function () {
       }
     }
 
+    await DB.setSyncRoom(CONFIG.portToRoom(port));
     const url = buildWhatsAppURL(identity.name, identity.id, identity.port);
     window.open(url, '_blank');
-
     hideFirstBootModal();
     showWaitingScreen(identity.id, false);
   }
 
-  /* ---------- verificar ---------- */
   async function refreshAuthorization() {
     if (!state.identity) { toast('⚠️ No hay identidad guardada'); return; }
-
     const btn = $('iwm_checkBtn');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Verificando…'; }
     try {
@@ -293,12 +274,15 @@ window.Identity = (function () {
       if (auth.authorized) {
         state.identity.role = auth.role;
         state.identity.name = auth.name || state.identity.name;
+        /* Sala autoritativa desde users.json */
+        if (auth.room) state.identity.port = auth.room;
         state.identity.authorized = true;
         await DB.setIdentity(state.identity);
+        await DB.setSyncRoom(CONFIG.portToRoom(state.identity.port));
         await DB.addAudit({
           action: 'login',
           actor: { id: state.identity.id, name: state.identity.name },
-          meta: { role: state.identity.role }
+          meta: { role: state.identity.role, room: state.identity.port }
         });
         hideWaitingScreen();
         enterApp(state.identity);
@@ -319,7 +303,6 @@ window.Identity = (function () {
     }
   }
 
-  /* ---------- entrar ---------- */
   function enterApp(identity) {
     hideFirstBootModal();
     hideWaitingScreen();
@@ -332,25 +315,35 @@ window.Identity = (function () {
     }
   }
 
-  /* ---------- init ---------- */
   async function init() {
     if (state.initialized) return state.identity;
     state.initialized = true;
 
     const stored = await DB.getIdentity();
-    if (!stored) {
-      showFirstBootModal();
-      return null;
-    }
-
+    if (!stored) { showFirstBootModal(); return null; }
     state.identity = stored;
 
     const auth = await checkAuthorization(stored.id, false);
+
     if (auth.authorized) {
       state.identity.role = auth.role;
       state.identity.name = auth.name || state.identity.name;
+      /* Solo operador: la sala siempre se sobrescribe (es fija) */
+      if (auth.room && auth.role === CONFIG.ROLES.OPERADOR) {
+        state.identity.port = auth.room;
+      }
       state.identity.authorized = true;
       await DB.setIdentity(state.identity);
+    }
+
+    /* Sincronizar sync_room con el port actual */
+    const expectedRoom = CONFIG.portToRoom(state.identity.port);
+    const currentRoom = await DB.getSyncRoom();
+    if (currentRoom !== expectedRoom) {
+      await DB.setSyncRoom(expectedRoom);
+    }
+
+    if (auth.authorized) {
       enterApp(state.identity);
       return state.identity;
     }
@@ -360,17 +353,14 @@ window.Identity = (function () {
       return null;
     }
 
-    /* Fallback offline: si alguna vez estuvo autorizado y no hay red, dejar entrar */
     if (!state.usersFile && stored.authorized) {
       enterApp(stored);
       return stored;
     }
-
     showWaitingScreen(stored.id, false);
     return null;
   }
 
-  /* ---------- logout ---------- */
   async function logout() {
     if (!confirm('¿Borrar la identidad de este dispositivo? Tendrás que volver a registrarte.')) return;
     await DB.clearIdentity();
@@ -383,21 +373,21 @@ window.Identity = (function () {
     showFirstBootModal();
   }
 
-  /* ---------- updateProfile ---------- */
   async function updateProfile(updates) {
     if (!state.identity) return null;
     const merged = Object.assign({}, state.identity, updates);
     await DB.setIdentity(merged);
+    if (updates && updates.port) {
+      await DB.setSyncRoom(CONFIG.portToRoom(updates.port));
+    }
     state.identity = merged;
     return merged;
   }
 
-  /* ---------- públicos ---------- */
   function getCurrentUser() { return state.identity ? Object.assign({}, state.identity) : null; }
   function isAdmin()    { return !!(state.identity && state.identity.role === CONFIG.ROLES.ADMIN); }
   function isBalance()  { return !!(state.identity && state.identity.role === CONFIG.ROLES.BALANCE); }
 
-  /* ---------- setupUI ---------- */
   function setupUI() {
     const manualCb = $('ifb_manualToggle');
     if (manualCb) {
@@ -411,21 +401,18 @@ window.Identity = (function () {
           : '📱 Enviar solicitud por WhatsApp';
       });
     }
-
     const submitBtn = $('ifb_submitBtn');
     if (submitBtn) {
       submitBtn.addEventListener('click', function () {
         submitFirstBoot().catch(e => { console.error(e); toast('⚠️ Error al registrarte'); });
       });
     }
-
     const checkBtn = $('iwm_checkBtn');
     if (checkBtn) {
       checkBtn.addEventListener('click', function () {
         refreshAuthorization().catch(e => console.error(e));
       });
     }
-
     const retryWhatsBtn = $('iwm_whatsappBtn');
     if (retryWhatsBtn) {
       retryWhatsBtn.addEventListener('click', function () {
@@ -437,17 +424,11 @@ window.Identity = (function () {
   }
 
   return {
-    init,
-    setupUI,
-    getCurrentUser,
-    isAdmin,
-    isBalance,
-    refreshAuthorization,
-    logout,
-    loadUsersFile,
-    findUserById,
-    updateProfile,
-    compressPhotoFromFile,
+    init, setupUI,
+    getCurrentUser, isAdmin, isBalance,
+    refreshAuthorization, logout,
+    loadUsersFile, findUserById,
+    updateProfile, compressPhotoFromFile, getAvailableRooms,
     set onAuthorized(fn) { onAuthorizedCb = fn; }
   };
 })();
