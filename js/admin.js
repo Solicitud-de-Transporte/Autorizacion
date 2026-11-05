@@ -1,8 +1,6 @@
 /* ============================================================
    Panel de administración - Insopesca El Morro
-   v1.9.0:
-   - Suspender / reactivar usuarios
-   - Indicador de almacenamiento en vivo
+   v2.0.1: refresca select de salas después de crear una nueva
    ============================================================ */
 
 window.Admin = (function () {
@@ -12,6 +10,7 @@ window.Admin = (function () {
 
   const state = {
     users: [],
+    rooms: [],
     adminWhatsApp: '',
     adminId: '',
     libsLoaded: { jsPDF: false, xlsx: false },
@@ -61,7 +60,6 @@ window.Admin = (function () {
     return '';
   }
 
-  /* ---------- librerías on-demand ---------- */
   function loadScript(url) {
     return new Promise((resolve, reject) => {
       const existing = document.querySelector('script[src="' + url + '"]');
@@ -89,33 +87,22 @@ window.Admin = (function () {
     state.libsLoaded.xlsx = true;
   }
 
-  /* ---------- export historial ---------- */
   function recordToRow(r) {
     return {
-      'Fecha': r.fecha || '',
-      'Placa': r.placa || '',
-      'Cajas': r.cajas || '',
-      'Especie': r.especie || '',
-      'Presentación': r.presentacion || r.sardina || '',
-      'Marca': r.marca || '',
-      'CGT': r.cgt || '',
-      'Vence CGT': r.venceCgt || '',
-      'Propietario': r.propietario || '',
-      'C.I. Propietario': r.ciPropietario || '',
-      'Chofer': r.chofer || '',
-      'C.I. Chofer': r.ciChofer || '',
-      'Destino': r.destino || '',
-      'Estado': r.estado || '',
-      'Municipio': r.municipio || '',
-      'Parroquia': r.parroquia || '',
-      'Recibe': r.recibe || '',
-      'Teléfono': r.telefono || '',
-      'Origen': r.origen || '',
-      'Productor': r.productor || '',
+      'Fecha': r.fecha || '', 'Placa': r.placa || '', 'Cajas': r.cajas || '',
+      'Especie': r.especie || '', 'Presentación': r.presentacion || r.sardina || '',
+      'Marca': r.marca || '', 'CGT': r.cgt || '', 'Vence CGT': r.venceCgt || '',
+      'Propietario': r.propietario || '', 'C.I. Propietario': r.ciPropietario || '',
+      'Chofer': r.chofer || '', 'C.I. Chofer': r.ciChofer || '',
+      'Destino': r.destino || '', 'Estado': r.estado || '',
+      'Municipio': r.municipio || '', 'Parroquia': r.parroquia || '',
+      'Recibe': r.recibe || '', 'Teléfono': r.telefono || '',
+      'Origen': r.origen || '', 'Productor': r.productor || '',
       'Observación': r.observacion || '',
       'Estado solicitud': r.status || '',
       'Observaciones balance': r.observations || '',
       'Enviada al balance': r.sent_to_balance ? 'Sí' : 'No',
+      'Sala': r.room || '',
       'Creado por': (r.created_by && r.created_by.name) || '',
       'Editado por': (r.updated_by && r.updated_by.name) || '',
       'Guardado': fmtDateTime(r.updated_at || (r.savedAt ? new Date(r.savedAt).getTime() : 0))
@@ -170,24 +157,15 @@ window.Admin = (function () {
     toast('📊 Excel descargado');
   }
 
-  /* ---------- auditoría ---------- */
   const AUDIT_LABEL = {
-    'create': 'Creó solicitud',
-    'update': 'Editó solicitud',
-    'delete_local': 'Ocultó (local)',
-    'delete_global': 'Borró (global)',
-    'login': 'Inició sesión',
-    'register_request': 'Solicitud de registro',
-    'admin_add_user': 'Agregó usuario',
-    'admin_remove_user': 'Quitó usuario',
-    'admin_suspend_user': 'Suspendió usuario',
-    'admin_reactivate_user': 'Reactivó usuario',
-    'change_sync_room': 'Cambió sala/puerto',
-    'status_change': 'Cambió estado',
+    'create': 'Creó solicitud', 'update': 'Editó solicitud',
+    'delete_local': 'Ocultó (local)', 'delete_global': 'Borró (global)',
+    'login': 'Inició sesión', 'register_request': 'Solicitud de registro',
+    'admin_add_user': 'Agregó usuario', 'admin_remove_user': 'Quitó usuario',
+    'admin_suspend_user': 'Suspendió usuario', 'admin_reactivate_user': 'Reactivó usuario',
+    'change_sync_room': 'Cambió sala/puerto', 'status_change': 'Cambió estado',
     'send_to_balance': 'Envió al Balance',
-    'backup_create': 'Creó respaldo',
-    'backup_export': 'Exportó respaldo',
-    'backup_import': 'Importó respaldo',
+    'backup_create': 'Creó respaldo', 'backup_export': 'Exportó respaldo', 'backup_import': 'Importó respaldo',
     'profile_update': 'Actualizó perfil'
   };
 
@@ -241,7 +219,6 @@ window.Admin = (function () {
     toast('📊 Auditoría Excel descargada');
   }
 
-  /* ---------- dashboard ---------- */
   function computeStats(records) {
     const byStatus = { pendiente: 0, aprobada: 0, rechazada: 0 };
     const byUser = {}, byDay = {};
@@ -267,7 +244,7 @@ window.Admin = (function () {
     const el = $('adminStorageInfo');
     if (!el) return;
     if (!navigator.storage || !navigator.storage.estimate) {
-      el.innerHTML = '💾 <strong>Almacenamiento:</strong> estimación no disponible en este navegador.';
+      el.innerHTML = '💾 <strong>Almacenamiento:</strong> estimación no disponible.';
       return;
     }
     try {
@@ -276,7 +253,7 @@ window.Admin = (function () {
       const quotaMB = (est.quota / 1024 / 1024).toFixed(0);
       const pct = est.quota ? ((est.usage / est.quota) * 100).toFixed(2) : '0';
       el.innerHTML = '💾 <strong>Almacenamiento:</strong> ' +
-        usedMB + ' MB usados de ' + quotaMB + ' MB disponibles (' + pct + '%)';
+        usedMB + ' MB usados de ' + quotaMB + ' MB (' + pct + '%)';
     } catch (e) {
       el.innerHTML = '💾 <strong>Almacenamiento:</strong> no se pudo estimar.';
     }
@@ -324,11 +301,10 @@ window.Admin = (function () {
         '<div class="pending-row">' +
           '<div class="pending-info">' +
             '<div class="user-name">🚗 ' + esc(r.placa) + ' · ' + esc(r.destino) + '</div>' +
-            '<div class="user-id">' +
-              esc((r.created_by && r.created_by.name) || '—') +
+            '<div class="user-id">' + esc((r.created_by && r.created_by.name) || '—') +
               ' · ' + esc(r.cajas) + ' cajas · ' + esc(r.fecha || '') +
-              (r.sent_to_balance ? ' · 📤 Enviada' : '') +
-            '</div>' +
+              (r.room ? ' · ' + esc(r.room) : '') +
+              (r.sent_to_balance ? ' · 📤 Enviada' : '') + '</div>' +
           '</div>' +
           '<div class="pending-actions">' +
             '<button class="hbtn hbtn-approve" onclick="Balance.openChange(' + r.id + ',\'aprobada\')">✅</button>' +
@@ -339,7 +315,6 @@ window.Admin = (function () {
     }
   }
 
-  /* ---------- en línea ---------- */
   async function renderOnlineUsers() {
     const el = $('adminOnline');
     if (!el) return;
@@ -347,7 +322,6 @@ window.Admin = (function () {
       el.innerHTML = '<div class="empty-mini">🟢 En línea: 0 · (sync desactivado)</div>';
       return;
     }
-
     const lastSeenMap = await DB.getAllLastSeen();
     const onlinePeers = (window.Sync && Sync.getOnlinePeers) ? Sync.getOnlinePeers() : [];
     const onlineById = new Map();
@@ -356,26 +330,22 @@ window.Admin = (function () {
     const combined = new Map();
     state.users.forEach(u => {
       combined.set(u.id, {
-        id: u.id,
-        name: u.name,
-        role: u.role || 'operador',
+        id: u.id, name: u.name, role: u.role || 'operador',
+        room: u.room || '',
         online: onlineById.has(u.id),
         lastSeen: lastSeenMap[u.id] || null,
-        authorized: true,
-        suspended: u.suspended === true
+        authorized: true, suspended: u.suspended === true
       });
     });
     Object.keys(lastSeenMap).forEach(id => {
       if (!combined.has(id)) {
         const ls = lastSeenMap[id];
         combined.set(id, {
-          id,
-          name: (ls && ls.name) || id,
+          id, name: (ls && ls.name) || id,
           role: (ls && ls.role) || 'operador',
-          online: onlineById.has(id),
-          lastSeen: ls,
-          authorized: false,
-          suspended: false
+          room: (ls && ls.room) || '',
+          online: onlineById.has(id), lastSeen: ls,
+          authorized: false, suspended: false
         });
       }
     });
@@ -390,6 +360,7 @@ window.Admin = (function () {
     else html += onlineList.map(u =>
       '<div class="online-user">👤 ' + esc(u.name) +
         ' · <span style="opacity:.65">' + esc(u.role) + '</span>' +
+        (u.room ? ' · ' + esc(u.room) : '') +
         (u.suspended ? ' · <em>suspendido</em>' : '') + '</div>'
     ).join('');
 
@@ -398,6 +369,7 @@ window.Admin = (function () {
     else html += recentlyList.map(u =>
       '<div class="online-user offline">👤 ' + esc(u.name) +
         ' · <span style="opacity:.65">' + esc(u.role) + '</span>' +
+        (u.room ? ' · ' + esc(u.room) : '') +
         ' · <span class="seen-time">' + relativeTime(u.lastSeen.ts) + '</span>' +
         (u.lastSeen.ts ? ' <span class="seen-abs">(' + fmtDateTime(u.lastSeen.ts) + ')</span>' : '') +
       '</div>'
@@ -408,16 +380,15 @@ window.Admin = (function () {
       html += neverList.map(u =>
         '<div class="online-user offline">👤 ' + esc(u.name) +
           ' · <span style="opacity:.65">' + esc(u.role) + '</span>' +
+          (u.room ? ' · ' + esc(u.room) : '') +
           (u.authorized ? '' : ' · <em>no autorizado</em>') +
           (u.suspended ? ' · <em>suspendido</em>' : '') + '</div>'
       ).join('');
     }
-
     html += '<div class="hint" style="margin-top:12px">La "última conexión" se mide solo desde este dispositivo.</div>';
     el.innerHTML = html;
   }
 
-  /* ---------- gestión de usuarios ---------- */
   function renderUsersList() {
     const el = $('adminUsersList');
     if (!el) return;
@@ -435,35 +406,29 @@ window.Admin = (function () {
         actions = '<span class="tag-admin">Tú (admin)</span>';
       } else if (isSuspended) {
         actions =
-          '<button class="hbtn hbtn-reactivate" data-reactivate-user="' + esc(u.id) + '" title="Reactivar">▶️</button>' +
-          '<button class="hbtn hbtn-del" data-remove-user="' + esc(u.id) + '" title="Eliminar">🗑️</button>';
+          '<button class="hbtn hbtn-reactivate" data-reactivate-user="' + esc(u.id) + '">▶️</button>' +
+          '<button class="hbtn hbtn-del" data-remove-user="' + esc(u.id) + '">🗑️</button>';
       } else {
         actions =
-          '<button class="hbtn hbtn-suspend" data-suspend-user="' + esc(u.id) + '" title="Suspender">⏸️</button>' +
-          '<button class="hbtn hbtn-del" data-remove-user="' + esc(u.id) + '" title="Eliminar">🗑️</button>';
+          '<button class="hbtn hbtn-suspend" data-suspend-user="' + esc(u.id) + '">⏸️</button>' +
+          '<button class="hbtn hbtn-del" data-remove-user="' + esc(u.id) + '">🗑️</button>';
       }
       return '<div class="user-row' +
         (isSuspended ? ' user-row-suspended' : '') +
         (pending ? ' user-row-pending' : '') + '">' +
         '<div class="user-info">' +
           '<div class="user-name">' + esc(u.name) +
-            (isSuspended ? ' <span class="tag-suspended">⏸️ Suspendido</span>' : '') +
-          '</div>' +
-          '<div class="user-id">' + esc(u.id) + ' · ' + esc(u.role || 'operador') + '</div>' +
+            (isSuspended ? ' <span class="tag-suspended">⏸️ Suspendido</span>' : '') + '</div>' +
+          '<div class="user-id">' + esc(u.id) + ' · ' + esc(u.role || 'operador') +
+            (u.room ? ' · 📍 ' + esc(u.room) : '') + '</div>' +
         '</div>' +
         '<div class="user-actions">' + actions + '</div>' +
       '</div>';
     }).join('');
 
-    el.querySelectorAll('[data-remove-user]').forEach(btn => {
-      btn.addEventListener('click', () => removeUser(btn.getAttribute('data-remove-user')));
-    });
-    el.querySelectorAll('[data-suspend-user]').forEach(btn => {
-      btn.addEventListener('click', () => suspendUser(btn.getAttribute('data-suspend-user')));
-    });
-    el.querySelectorAll('[data-reactivate-user]').forEach(btn => {
-      btn.addEventListener('click', () => reactivateUser(btn.getAttribute('data-reactivate-user')));
-    });
+    el.querySelectorAll('[data-remove-user]').forEach(b => b.addEventListener('click', () => removeUser(b.getAttribute('data-remove-user'))));
+    el.querySelectorAll('[data-suspend-user]').forEach(b => b.addEventListener('click', () => suspendUser(b.getAttribute('data-suspend-user'))));
+    el.querySelectorAll('[data-reactivate-user]').forEach(b => b.addEventListener('click', () => reactivateUser(b.getAttribute('data-reactivate-user'))));
     renderPendingBanner();
   }
 
@@ -474,7 +439,7 @@ window.Admin = (function () {
     if (n === 0) { banner.style.display = 'none'; banner.innerHTML = ''; return; }
     banner.style.display = 'flex';
     banner.innerHTML = '⚠️ Tienes <strong>' + n + ' cambio' + (n > 1 ? 's' : '') +
-      '</strong> sin publicar. Cuando termines, pulsa <strong>⬇️ Descargar users.json</strong> y súbelo a GitHub.';
+      '</strong> sin publicar. Descarga users.json y súbelo a GitHub.';
   }
 
   function markUserChange(id) {
@@ -483,21 +448,31 @@ window.Admin = (function () {
     renderPendingBanner();
   }
 
-  async function addUser(id, name, role) {
+  function refreshRoomSelect() {
+    const roomSel = $('adminNewUserRoom');
+    if (!roomSel) return;
+    const currentVal = roomSel.value;
+    roomSel.innerHTML = state.rooms.map(r => '<option value="' + esc(r) + '">' + esc(r) + '</option>').join('');
+    if (currentVal && state.rooms.includes(currentVal)) roomSel.value = currentVal;
+  }
+
+  async function addUser(id, name, role, room) {
     id = String(id || '').trim();
     name = String(name || '').trim();
     role = String(role || CONFIG.ROLES.OPERADOR).trim();
+    room = String(room || '').trim();
     if (!id || !name) { toast('⚠️ ID y nombre son obligatorios'); return false; }
     if (!/^usr_[a-z0-9]+$/i.test(id)) { toast('⚠️ ID debe tener formato usr_xxxxxxxx'); return false; }
     if (state.users.some(u => u.id === id)) { toast('⚠️ Ese ID ya está registrado'); return false; }
-    state.users.push({ id, name, role });
+    const newUser = { id, name, role };
+    if (room) newUser.room = room;
+    state.users.push(newUser);
     markUserChange(id);
     renderUsersList();
     await DB.addAudit({
       action: 'admin_add_user',
       actor: { id: state.adminId, name: 'Admin' },
-      target: { id },
-      meta: { name, role }
+      target: { id }, meta: { name, role, room }
     });
     toast('✅ Agregado. Se publicará al descargar users.json.');
     return true;
@@ -505,7 +480,7 @@ window.Admin = (function () {
 
   async function removeUser(id) {
     if (id === state.adminId) { toast('⚠️ No puedes quitarte'); return; }
-    if (!confirm('¿Eliminar definitivamente a este usuario?\n\nSe perderá su registro en users.json. Sus solicitudes creadas NO se borran.')) return;
+    if (!confirm('¿Eliminar definitivamente a este usuario?\n\nSus solicitudes creadas NO se borran.')) return;
     const removed = state.users.find(u => u.id === id);
     state.users = state.users.filter(u => u.id !== id);
     markUserChange(id);
@@ -513,8 +488,7 @@ window.Admin = (function () {
     await DB.addAudit({
       action: 'admin_remove_user',
       actor: { id: state.adminId, name: 'Admin' },
-      target: { id },
-      meta: { name: removed ? removed.name : '' }
+      target: { id }, meta: { name: removed ? removed.name : '' }
     });
     toast('🗑️ Quitado. Se publicará al descargar users.json.');
   }
@@ -523,15 +497,14 @@ window.Admin = (function () {
     if (id === state.adminId) { toast('⚠️ No puedes suspenderte'); return; }
     const user = state.users.find(u => u.id === id);
     if (!user) return;
-    if (!confirm('¿Suspender temporalmente a ' + user.name + '?\n\nNo podrá entrar pero sus datos se conservan.')) return;
+    if (!confirm('¿Suspender a ' + user.name + '?\n\nNo podrá entrar pero sus datos se conservan.')) return;
     user.suspended = true;
     markUserChange(id);
     renderUsersList();
     await DB.addAudit({
       action: 'admin_suspend_user',
       actor: { id: state.adminId, name: 'Admin' },
-      target: { id },
-      meta: { name: user.name }
+      target: { id }, meta: { name: user.name }
     });
     toast('⏸️ Suspendido. Se publicará al descargar users.json.');
   }
@@ -546,8 +519,7 @@ window.Admin = (function () {
     await DB.addAudit({
       action: 'admin_reactivate_user',
       actor: { id: state.adminId, name: 'Admin' },
-      target: { id },
-      meta: { name: user.name }
+      target: { id }, meta: { name: user.name }
     });
     toast('▶️ Reactivado. Se publicará al descargar users.json.');
   }
@@ -558,23 +530,21 @@ window.Admin = (function () {
       updated: new Date().toISOString(),
       adminWhatsApp: state.adminWhatsApp || CONFIG.ADMIN_WHATSAPP,
       adminId: state.adminId || CONFIG.ADMIN_ID,
+      rooms: state.rooms || CONFIG.DEFAULT_PORTS.slice(),
       users: state.users
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'users.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = 'users.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
     state.pendingUserChanges.clear();
     renderUsersList();
+    if (window.Rooms && Rooms.clearLocalRooms) Rooms.clearLocalRooms();
     toast('⬇️ users.json descargado. Reemplázalo en tu repo y haz push.');
   }
 
-  /* ---------- auditoría ---------- */
   async function loadAuditAndRender() {
     state.cachedAudit = await DB.getAuditLog(200);
     renderAudit(filterAudit(state.cachedAudit));
@@ -614,25 +584,6 @@ window.Admin = (function () {
     }).join('');
   }
 
-  /* ---------- sync room ---------- */
-  async function renderSyncRoom() {
-    const input = $('adminSyncRoom');
-    if (!input) return;
-    input.value = await DB.getSyncRoom();
-  }
-  async function changeSyncRoom(room) {
-    room = String(room || '').trim();
-    if (!/^[a-z0-9_\-]{3,60}$/i.test(room)) { toast('⚠️ Solo letras, números, guion y guion bajo'); return; }
-    await DB.setSyncRoom(room);
-    await DB.addAudit({
-      action: 'change_sync_room',
-      actor: { id: state.adminId, name: 'Admin' },
-      meta: { newRoom: room }
-    });
-    toast('✅ Sala cambiada. Reinicia para aplicar.');
-  }
-
-  /* ---------- respaldos ---------- */
   async function renderBackupsList() {
     const el = $('adminBackupsList');
     if (!el) return;
@@ -653,34 +604,27 @@ window.Admin = (function () {
             (reason ? ' · <em>' + esc(reason) + '</em>' : '') + '</div>' +
         '</div>' +
         '<div class="pending-actions">' +
-          '<button class="hbtn hbtn-view" title="Descargar" data-backup-export="' + b.id + '">⬇️</button>' +
-          '<button class="hbtn hbtn-edit" title="Restaurar (merge)" data-backup-restore="' + b.id + '">🔄</button>' +
-          '<button class="hbtn hbtn-del" title="Eliminar" data-backup-delete="' + b.id + '">🗑️</button>' +
+          '<button class="hbtn hbtn-view" data-backup-export="' + b.id + '">⬇️</button>' +
+          '<button class="hbtn hbtn-edit" data-backup-restore="' + b.id + '">🔄</button>' +
+          '<button class="hbtn hbtn-del" data-backup-delete="' + b.id + '">🗑️</button>' +
         '</div>' +
       '</div>';
     }).join('');
-
-    el.querySelectorAll('[data-backup-export]').forEach(btn => {
-      btn.addEventListener('click', () => Backup.exportToFile(parseInt(btn.getAttribute('data-backup-export'), 10)));
-    });
-    el.querySelectorAll('[data-backup-restore]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = parseInt(btn.getAttribute('data-backup-restore'), 10);
-        const bk = state.cachedBackups.find(b => b.id === id);
-        if (!bk) return;
-        if (!confirm('⚠️ Restaurar este respaldo combinará sus datos con los actuales (los más recientes ganan).\n\n¿Continuar?')) return;
-        const file = new File([JSON.stringify(bk.snapshot)], 'backup.json', { type: 'application/json' });
-        await Backup.importFromFile(file, 'merge');
-        await renderBackupsList();
-      });
-    });
-    el.querySelectorAll('[data-backup-delete]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('¿Eliminar este respaldo?')) return;
-        await Backup.remove(parseInt(btn.getAttribute('data-backup-delete'), 10));
-        await renderBackupsList();
-      });
-    });
+    el.querySelectorAll('[data-backup-export]').forEach(b => b.addEventListener('click', () => Backup.exportToFile(parseInt(b.getAttribute('data-backup-export'), 10))));
+    el.querySelectorAll('[data-backup-restore]').forEach(b => b.addEventListener('click', async () => {
+      const id = parseInt(b.getAttribute('data-backup-restore'), 10);
+      const bk = state.cachedBackups.find(x => x.id === id);
+      if (!bk) return;
+      if (!confirm('⚠️ Restaurar combinará con los datos actuales.\n\n¿Continuar?')) return;
+      const file = new File([JSON.stringify(bk.snapshot)], 'backup.json', { type: 'application/json' });
+      await Backup.importFromFile(file, 'merge');
+      await renderBackupsList();
+    }));
+    el.querySelectorAll('[data-backup-delete]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar este respaldo?')) return;
+      await Backup.remove(parseInt(b.getAttribute('data-backup-delete'), 10));
+      await renderBackupsList();
+    }));
   }
 
   async function handleBackupCreate() {
@@ -701,13 +645,27 @@ window.Admin = (function () {
     if (ok) await renderBackupsList();
   }
   async function handleBackupClearAll() {
-    if (!confirm('¿Eliminar TODOS los respaldos guardados?')) return;
+    if (!confirm('¿Eliminar TODOS los respaldos?')) return;
     await Backup.clearAll();
     await renderBackupsList();
     toast('🗑️ Respaldos eliminados');
   }
 
-  /* ---------- panel HTML ---------- */
+  async function createRoomPrompt() {
+    const name = prompt('Nombre de la nueva sala / puerto:');
+    if (!name) return;
+    const trimmed = name.trim();
+    if (trimmed.length < 3) { toast('⚠️ Mínimo 3 caracteres'); return; }
+    if (!state.rooms) state.rooms = CONFIG.DEFAULT_PORTS.slice();
+    if (state.rooms.includes(trimmed)) { toast('⚠️ Esa sala ya existe'); return; }
+    state.rooms.push(trimmed);
+    if (window.Rooms) await Rooms.registerLocalRoom(trimmed);
+    markUserChange('__rooms__');
+    refreshRoomSelect(); /* Actualiza el select de sala del formulario */
+    if (window.Rooms) await Rooms.renderSwitcher('adminRoomSwitcher', { allowCreate: true, onCreate: createRoomPrompt });
+    toast('✅ Sala agregada. Descarga users.json para publicarla.');
+  }
+
   function buildPanelHTML() {
     return '' +
 '<div class="admin-panel">' +
@@ -724,6 +682,10 @@ window.Admin = (function () {
   '<section class="admin-section"><h3>🟢 Usuarios en línea / última conexión</h3>' +
     '<div id="adminOnline"></div></section>' +
 
+  '<section class="admin-section"><h3>🌐 Sala de sincronización</h3>' +
+    '<div id="adminRoomSwitcher"></div>' +
+    '<div class="hint" style="margin-top:8px">Solo Administrador y Centro de Balance pueden cambiar de sala. Los operadores quedan fijos en su sala asignada.</div></section>' +
+
   '<section class="admin-section"><h3>👥 Usuarios autorizados</h3>' +
     '<div id="adminPendingBanner" class="pending-banner" style="display:none"></div>' +
     '<div class="admin-form-row">' +
@@ -733,11 +695,13 @@ window.Admin = (function () {
         '<option value="operador">Operador</option>' +
         '<option value="balance">Centro de Balance</option>' +
         '<option value="admin">Admin</option></select>' +
+      '<select id="adminNewUserRoom"></select>' +
       '<button id="adminAddUserBtn" class="btn btn-primary btn-sm">➕ Agregar</button></div>' +
+    '<div class="hint" style="margin-top:2px;margin-bottom:10px;font-size:.75rem">📌 La sala que elijas aquí es <strong>fija</strong> para los operadores (no podrán cambiarla). Admin/Balance sí pueden cambiar la propia después.</div>' +
     '<div id="adminUsersList" style="margin-top:12px"></div>' +
     '<div class="admin-actions">' +
       '<button id="adminDownloadUsersBtn" class="btn btn-primary btn-sm">⬇️ Descargar users.json</button></div>' +
-    '<div class="hint" style="margin-top:8px">Agrega, suspende o elimina a los usuarios que necesites y al final descarga este archivo una sola vez.</div></section>' +
+    '<div class="hint" style="margin-top:8px">Agrega, suspende o elimina a los usuarios y al final descarga este archivo una sola vez.</div></section>' +
 
   '<section class="admin-section"><h3>💾 Respaldos</h3>' +
     '<div class="admin-form-row">' +
@@ -748,15 +712,13 @@ window.Admin = (function () {
       '<input type="file" id="backupImportFile" accept=".json,application/json" style="display:none">' +
       '<button id="backupImportBtn" class="btn btn-secondary btn-sm">⬆️ Importar archivo</button>' +
       '<select id="backupImportMode">' +
-        '<option value="merge">Combinar (recomendado)</option>' +
+        '<option value="merge">Combinar</option>' +
         '<option value="replace">Reemplazar todo</option></select>' +
     '</div>' +
     '<div id="adminBackupsList" style="margin-top:12px"></div>' +
     '<div class="admin-actions" style="margin-top:10px">' +
       '<button id="backupClearAllBtn" class="btn btn-secondary btn-sm">🗑️ Eliminar todos</button>' +
-    '</div>' +
-    '<div class="hint" style="margin-top:8px">Solo se conservan los últimos ' + CONFIG.BACKUP_MAX_COUNT + ' respaldos.</div>' +
-  '</section>' +
+    '</div></section>' +
 
   '<section class="admin-section"><h3>📄 Exportar historial</h3>' +
     '<div class="admin-form-row">' +
@@ -787,31 +749,20 @@ window.Admin = (function () {
         '<option value="admin_remove_user">Quitó usuario</option>' +
         '<option value="admin_suspend_user">Suspendió usuario</option>' +
         '<option value="admin_reactivate_user">Reactivó usuario</option>' +
+        '<option value="change_sync_room">Cambió sala</option>' +
         '<option value="status_change">Cambió estado</option>' +
-        '<option value="send_to_balance">Envió al Balance</option>' +
-        '<option value="backup_create">Creó respaldo</option>' +
-        '<option value="backup_export">Exportó respaldo</option>' +
-        '<option value="backup_import">Importó respaldo</option>' +
-        '<option value="profile_update">Actualizó perfil</option>' +
-        '<option value="change_sync_room">Cambió sala</option></select>' +
+        '<option value="send_to_balance">Envió al Balance</option></select>' +
       '<input type="text" id="auditActor" placeholder="Buscar actor"></div>' +
     '<div class="admin-form-row">' +
       '<button id="auditExportPdfBtn" class="btn btn-primary btn-sm">📄 PDF</button>' +
       '<button id="auditExportExcelBtn" class="btn btn-secondary btn-sm">📊 Excel</button></div>' +
     '<div id="adminAuditList" style="margin-top:12px"></div></section>' +
 
-  '<section class="admin-section"><h3>🌐 Sala de sincronización</h3>' +
-    '<div class="admin-form-row">' +
-      '<input type="text" id="adminSyncRoom" placeholder="insopesca-puerto-el-morro-v1">' +
-      '<button id="adminSyncRoomBtn" class="btn btn-secondary btn-sm">Guardar</button></div>' +
-    '<div class="hint" style="margin-top:8px">Cambia la sala si este dispositivo pertenece a otro puerto.</div></section>' +
-
   '<section class="admin-section admin-danger"><h3>🚪 Cuenta</h3>' +
     '<button id="adminLogoutBtn" class="btn btn-secondary btn-sm">Cerrar sesión en este dispositivo</button></section>' +
 '</div>';
   }
 
-  /* ---------- filtros export ---------- */
   async function getFilteredRecords() {
     const all = await DB.getAllRecords();
     const from = ($('adminExportFrom') || {}).value || '';
@@ -838,13 +789,13 @@ window.Admin = (function () {
     return parts.join(' · ');
   }
 
-  /* ---------- bind ---------- */
   function bindPanelEvents() {
     if ($('adminAddUserBtn')) $('adminAddUserBtn').addEventListener('click', async () => {
       const ok = await addUser(
         ($('adminNewUserId') || {}).value,
         ($('adminNewUserName') || {}).value,
-        ($('adminNewUserRole') || {}).value
+        ($('adminNewUserRole') || {}).value,
+        ($('adminNewUserRoom') || {}).value
       );
       if (ok) {
         if ($('adminNewUserId')) $('adminNewUserId').value = '';
@@ -876,9 +827,6 @@ window.Admin = (function () {
       try { await exportAuditExcel(filterAudit(state.cachedAudit)); }
       catch (e) { console.error(e); toast('⚠️ Error al generar Excel'); }
     });
-    if ($('adminSyncRoomBtn')) $('adminSyncRoomBtn').addEventListener('click', async () => {
-      await changeSyncRoom(($('adminSyncRoom') || {}).value);
-    });
     if ($('adminLogoutBtn')) $('adminLogoutBtn').addEventListener('click', () => {
       if (typeof Identity !== 'undefined' && Identity.logout) Identity.logout();
     });
@@ -890,7 +838,6 @@ window.Admin = (function () {
     });
   }
 
-  /* ---------- mount ---------- */
   async function mount(containerId) {
     const container = $(containerId);
     if (!container) return;
@@ -899,17 +846,23 @@ window.Admin = (function () {
     const file = await Identity.loadUsersFile(true);
     if (file) {
       state.users = (file.users || []).slice();
+      state.rooms = (file.rooms && file.rooms.length) ? file.rooms.slice() : CONFIG.DEFAULT_PORTS.slice();
       state.adminWhatsApp = file.adminWhatsApp || CONFIG.ADMIN_WHATSAPP;
       state.adminId = file.adminId || CONFIG.ADMIN_ID;
     } else {
       state.users = [{ id: CONFIG.ADMIN_ID, name: 'Admin', role: 'admin' }];
+      state.rooms = CONFIG.DEFAULT_PORTS.slice();
       state.adminWhatsApp = CONFIG.ADMIN_WHATSAPP;
       state.adminId = CONFIG.ADMIN_ID;
     }
 
+    refreshRoomSelect();
     renderUsersList();
-    await renderSyncRoom();
     bindPanelEvents();
+
+    if (window.Rooms) {
+      await Rooms.renderSwitcher('adminRoomSwitcher', { allowCreate: true, onCreate: createRoomPrompt });
+    }
 
     await renderStorageInfo();
     renderDashboard(await DB.getAllRecords());
