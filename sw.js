@@ -1,8 +1,8 @@
 /* ============================================================
-   Service Worker - Insopesca El Morro (v1.9.1)
+   Service Worker - Insopesca El Morro (v2.0.1)
    ============================================================ */
 
-const CACHE_VERSION = 'v1.9.1';
+const CACHE_VERSION = 'v2.0.1';
 const SHELL_CACHE   = 'insopesca-shell-'   + CACHE_VERSION;
 const RUNTIME_CACHE = 'insopesca-runtime-' + CACHE_VERSION;
 
@@ -14,6 +14,7 @@ const SHELL_ASSETS = [
   './js/config.js',
   './js/db.js',
   './js/identity.js',
+  './js/rooms.js',
   './js/admin.js',
   './js/balance.js',
   './js/backup.js',
@@ -70,7 +71,9 @@ self.addEventListener('fetch', (event) => {
         if (cached) return cached;
         return new Response(JSON.stringify({
           version: 1, updated: new Date().toISOString(),
-          adminWhatsApp: '+584262840546', adminId: '4M4N3C3R', users: []
+          adminWhatsApp: '+584262840546', adminId: '4M4N3C3R',
+          rooms: ['El Morro', 'Guaca', 'La Esmeralda'],
+          users: []
         }), { headers: { 'Content-Type': 'application/json' } });
       }
     })());
