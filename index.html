@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d3b66">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Insopesca">
+<meta name="application-name" content="Insopesca">
 <meta name="description" content="Solicitud de Autorización - Insopesca El Morro">
 <title>Solicitud de Autorización | Insopesca El Morro</title>
 <link rel="manifest" href="manifest.json">
@@ -19,9 +24,8 @@ header{background:linear-gradient(135deg,var(--primary),var(--primary-light));co
 .logo-icon{font-size:44px}
 h1{font-size:1.45rem;font-weight:700}
 .subtitle{font-size:.82rem;opacity:.85;margin-top:2px}
-.author-badge{display:inline-block;margin-top:10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:20px;font-size:.72rem}
 .profile-badge{display:flex;align-items:center;gap:10px;margin-top:10px}
-.profile-avatar{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.2rem;overflow:hidden;flex-shrink:0;transition:transform .15s}
+.profile-avatar{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.2rem;overflow:hidden;flex-shrink:0;transition:transform .15s;cursor:pointer}
 .profile-avatar:hover{transform:scale(1.05)}
 .profile-avatar img{width:100%;height:100%;object-fit:cover}
 .profile-info{display:flex;flex-direction:column;min-width:0}
@@ -31,15 +35,15 @@ h1{font-size:1.45rem;font-weight:700}
 .tabs{display:flex;gap:8px;flex:1;min-width:0;flex-wrap:wrap}
 .tab{flex:1;min-width:80px;padding:11px 8px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab.active{background:#fff;color:var(--primary)}
-.icon-actions{display:flex;gap:6px;flex-shrink:0}
-.icon-btn{width:44px;height:44px;border:none;border-radius:10px;background:rgba(255,255,255,.15);color:#fff;font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .2s;-webkit-tap-highlight-color:transparent}
-.icon-btn:hover{background:rgba(255,255,255,.28)}
-.icon-btn:active{transform:scale(.94)}
-@media(max-width:400px){.icon-btn{width:40px;height:40px;font-size:1rem}.tab{padding:10px 6px;font-size:.78rem}}
+@media(max-width:400px){.tab{padding:10px 6px;font-size:.78rem}}
 main{margin-top:-46px;position:relative;z-index:3}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px 20px;margin-bottom:20px}
+.card-header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+.card-header-text{flex:1;min-width:0}
 .card-title{font-size:1.05rem;font-weight:700;color:var(--primary);margin-bottom:4px}
-.card-sub{font-size:.8rem;color:var(--text-light);margin-bottom:18px}
+.card-sub{font-size:.8rem;color:var(--text-light);margin-bottom:0}
+.paste-fab{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:white;border:none;padding:10px 14px;border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 3px 8px rgba(27,154,170,.25)}
+.paste-fab:active{transform:scale(.96)}
 .section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
 .field{margin-bottom:14px;position:relative}
 .field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:5px}
@@ -64,6 +68,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 .btn-whatsapp{background:linear-gradient(135deg,#25d366,#1da851);color:#fff}
 .btn-approve{background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff}
 .btn-reject{background:linear-gradient(135deg,#c0392b,#96281b);color:#fff}
+.btn-pending{background:linear-gradient(135deg,#f39c12,#d68910);color:#fff}
 .btn-secondary{background:#eef2f7;color:var(--primary);border:1.5px solid var(--border)}
 .btn-sm{padding:8px 14px;font-size:.8rem;width:auto;border-radius:9px}
 .btn-row{display:flex;gap:10px;margin-top:8px}
@@ -74,12 +79,18 @@ main{margin-top:-46px;position:relative;z-index:3}
 .search-box{position:relative}
 .search-box input{padding-left:38px}
 .search-box .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.5}
-.results-count{font-size:.78rem;color:var(--text-light);margin:10px 0 12px;font-weight:600}
-.date-filter{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px;align-items:end}
-.date-filter .field{margin-bottom:0}
-.date-filter label{font-size:.72rem}
-.date-filter input{padding:8px 10px;font-size:.82rem}
-@media(max-width:480px){.date-filter{grid-template-columns:1fr 1fr}.date-filter .btn{grid-column:1/-1}}
+.results-count{font-size:.78rem;color:var(--text-light);margin:10px 0 12px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.room-indicator{background:#e8f4f8;color:var(--accent-dark);padding:2px 10px;border-radius:20px;font-size:.72rem}
+.date-filter-row{display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:nowrap}
+.date-pill{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;transition:border-color .15s}
+.date-pill:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,154,170,.15)}
+.date-pill-icon{font-size:.85rem;flex-shrink:0}
+.date-pill input{flex:1;min-width:0;border:none;background:none;padding:0;font-size:.82rem;font-family:inherit;outline:none;color:var(--text)}
+.date-pill input::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
+.date-arrow{flex-shrink:0;color:var(--text-light);font-size:.85rem;font-weight:700}
+.date-clear-btn{flex-shrink:0;width:34px;height:34px;border:1.5px solid var(--border);background:#fff;border-radius:50%;cursor:pointer;font-size:.9rem;color:var(--text-light);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.date-clear-btn:hover{background:#fdecea;border-color:var(--danger);color:var(--danger)}
+@media(max-width:420px){.date-pill{padding:5px 8px}.date-pill input{font-size:.78rem}.date-pill-icon{display:none}.date-arrow{font-size:.75rem}.date-clear-btn{width:30px;height:30px;font-size:.8rem}}
 .history-item{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
 .history-item:hover{border-color:var(--accent)}
 .history-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
@@ -97,6 +108,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 .hbtn-del{background:#fdecea;color:var(--danger)}
 .hbtn-approve{background:#eafaf1;color:var(--success)}
 .hbtn-reject{background:#fdecea;color:var(--danger)}
+.hbtn-pending{background:#fff3cd;color:#856404}
 .hbtn-suspend{background:#fff3cd;color:#856404}
 .hbtn-reactivate{background:#d4edda;color:#155724}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-light)}
@@ -186,6 +198,13 @@ main{margin-top:-46px;position:relative;z-index:3}
 .admin-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .admin-danger{border-color:#f5b7b1}
 .pending-banner{display:none;background:#fff8e1;border:1.5px solid #f8c471;border-radius:9px;padding:10px 12px;margin-bottom:12px;font-size:.82rem;color:#7e4f00;align-items:center;gap:8px}
+.room-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.room-btn{padding:10px 16px;border:1.5px solid var(--border);background:#fff;border-radius:10px;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s}
+.room-btn:hover{border-color:var(--accent);background:#f0f8fe}
+.room-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-color:var(--primary);box-shadow:0 3px 8px rgba(13,59,102,.2)}
+.room-btn-add{border-style:dashed;color:var(--accent-dark);border-color:var(--accent)}
+.room-btn-add:hover{background:#e8f4f8}
+.room-locked{background:#eef2f7;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:.85rem;color:var(--text-light)}
 .stat-total{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
 .stat-total .stat-label{font-size:.72rem;opacity:.85;text-transform:uppercase;letter-spacing:.8px}
 .stat-total .stat-value{font-weight:800}
@@ -243,6 +262,8 @@ main{margin-top:-46px;position:relative;z-index:3}
   .admin-form-row input,.admin-form-row select{min-width:100px}
   .balance-filter-tab{font-size:.72rem;min-width:70px}
   .user-actions .hbtn{min-width:34px;padding:5px 6px;font-size:.7rem}
+  .room-btn{padding:8px 12px;font-size:.8rem}
+  .paste-fab{padding:8px 11px;font-size:.75rem}
 }
 </style>
 </head>
@@ -255,7 +276,7 @@ main{margin-top:-46px;position:relative;z-index:3}
       Antes de usar la app, regístrate. Enviarás tu ID por WhatsApp al administrador para que te autorice.
     </p>
     <div class="field"><label>📌 Tu nombre y apellido <span class="req">*</span></label><input type="text" id="ifb_name" placeholder="Ej: Juan Pérez"></div>
-    <div class="field"><label>📌 Puerto</label><select id="ifb_port"></select></div>
+    <div class="field"><label>📌 Sala / Puerto</label><select id="ifb_port"></select></div>
     <div class="field"><label class="check-inline"><input type="checkbox" id="ifb_manualToggle"> Soy administrador (ingresar ID manualmente)</label></div>
     <div id="ifb_manualWrap" style="display:none"><div class="field"><label>📌 ID de administrador</label><input type="text" id="ifb_manualId" placeholder="ID asignado" autocomplete="off"></div></div>
     <button id="ifb_submitBtn" class="btn btn-primary" style="margin-top:8px">📱 Enviar solicitud por WhatsApp</button>
@@ -286,7 +307,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 <div id="appView" style="display:none">
 <header><div class="header-content">
 <div class="logo-row"><div class="logo-icon">🐟</div><div><h1>Insopesca El Morro</h1><div class="subtitle">Sistema de Solicitud de Autorización de Transporte</div></div></div>
-<div class="profile-badge" title="Toca para cambiar foto / nombre">
+<div class="profile-badge" title="Toca para editar tu perfil">
   <div class="profile-avatar" id="profilePhoto">?</div>
   <div class="profile-info">
     <div class="profile-name" id="profileName">Usuario</div>
@@ -300,19 +321,20 @@ main{margin-top:-46px;position:relative;z-index:3}
 <button class="tab" id="tabBalance" onclick="switchView('balance')" style="display:none">⚖️ Balance</button>
 <button class="tab" id="tabAdmin" onclick="switchView('admin')" style="display:none">⚙️ Admin</button>
 </div>
-<div class="icon-actions">
-<button class="icon-btn" onclick="pasteData()" title="Pegar datos del portapapeles">📋</button>
-<button class="icon-btn" onclick="scanDocument()" title="Escanear imagen o PDF">📷</button>
-</div>
 </div>
 </div></header>
-<input type="file" id="scanInput" accept="image/*,application/pdf" style="display:none" onchange="handleScanFile(event)">
+
 <main class="container">
 <div class="install-banner" id="installBanner"><span style="font-size:1.4rem">📲</span><div class="txt">Instala la app en tu dispositivo</div><button onclick="installApp()">Instalar</button></div>
 
 <div id="viewForm"><div class="card">
-<div class="card-title">📋 Solicitud de Autorización</div>
-<div class="card-sub">Complete los datos. Los campos con <span style="color:#c0392b">*</span> son obligatorios. Usa <strong>📋</strong> para pegar o <strong>📷</strong> para escanear.</div>
+  <div class="card-header-row">
+    <div class="card-header-text">
+      <div class="card-title">📋 Solicitud de Autorización</div>
+      <div class="card-sub">Complete los datos. Los campos con <span style="color:#c0392b">*</span> son obligatorios.</div>
+    </div>
+    <button type="button" class="paste-fab" onclick="pasteData()" title="Pegar datos del portapapeles">📋 Pegar</button>
+  </div>
 <div id="editBanner" class="edit-banner" style="display:none">
   <span>✏️ Editando solicitud <strong id="editBannerPlate"></strong></span>
   <button type="button" onclick="cancelEdit()" class="btn btn-sm btn-secondary">Cancelar</button>
@@ -371,7 +393,7 @@ main{margin-top:-46px;position:relative;z-index:3}
 
 <div id="viewHistory" class="hidden"><div class="card">
 <div class="card-title">📚 Historial de Solicitudes</div>
-<div class="card-sub">Busca por <strong>una sola</strong> opción y filtra por fecha si lo necesitas.</div>
+<div class="card-sub" style="margin-bottom:14px">Busca por <strong>una sola</strong> opción, filtra por fecha y sala.</div>
 <div class="filter-group">
 <div class="filter-tabs">
 <button class="filter-tab active" data-f="placa" onclick="setFilter('placa')">🚗 Placa</button>
@@ -379,10 +401,17 @@ main{margin-top:-46px;position:relative;z-index:3}
 <button class="filter-tab" data-f="chofer" onclick="setFilter('chofer')">🧑‍✈️ Chofer</button>
 </div>
 <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Buscar por placa…" oninput="renderHistory()"></div>
-<div class="date-filter">
-  <div class="field"><label>Desde</label><input type="date" id="histFrom" onchange="renderHistory()"></div>
-  <div class="field"><label>Hasta</label><input type="date" id="histTo" onchange="renderHistory()"></div>
-  <button class="btn btn-secondary btn-sm" type="button" onclick="clearDateFilter()">✕</button>
+<div class="date-filter-row">
+  <div class="date-pill">
+    <span class="date-pill-icon">📅</span>
+    <input type="date" id="histFrom" title="Desde" onchange="renderHistory()">
+  </div>
+  <span class="date-arrow">→</span>
+  <div class="date-pill">
+    <span class="date-pill-icon">📅</span>
+    <input type="date" id="histTo" title="Hasta" onchange="renderHistory()">
+  </div>
+  <button class="date-clear-btn" type="button" onclick="clearDateFilter()" title="Limpiar fechas">✕</button>
 </div>
 </div>
 <div class="results-count" id="resultsCount"></div>
@@ -455,8 +484,8 @@ main{margin-top:-46px;position:relative;z-index:3}
       <label>📌 Nombre y apellido</label>
       <input type="text" id="profileModalName" placeholder="Tu nombre completo">
     </div>
-    <div class="field">
-      <label>📌 Puerto</label>
+    <div class="field" id="profileModalPortRow">
+      <label>📌 Sala / Puerto</label>
       <select id="profileModalPort"></select>
     </div>
     <div class="btn-row">
@@ -468,14 +497,15 @@ main{margin-top:-46px;position:relative;z-index:3}
 
 <div class="loading-overlay" id="loadingOverlay">
 <div class="spinner"></div>
-<div class="loading-text" id="loadingText">Procesando documento…</div>
-<div class="loading-sub" id="loadingSub">Iniciando</div>
+<div class="loading-text" id="loadingText">Procesando…</div>
+<div class="loading-sub" id="loadingSub"></div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script src="js/config.js"></script>
 <script src="js/db.js"></script>
 <script src="js/identity.js"></script>
+<script src="js/rooms.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/balance.js"></script>
 <script src="js/backup.js"></script>
