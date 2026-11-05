@@ -1,14 +1,24 @@
 {
   "version": 1,
-  "updated": "2026-11-04T00:00:00Z",
+  "updated": "2026-11-05T17:33:02.502Z",
   "adminWhatsApp": "+584262840546",
   "adminId": "4M4N3C3R",
-  "rooms": ["El Morro", "Guaca", "La Esmeralda"],
+  "rooms": [
+    "El Morro",
+    "Guaca",
+    "La Esmeralda"
+  ],
   "users": [
     {
       "id": "4M4N3C3R",
       "name": "Emmanuel Manosalva",
       "role": "admin",
+      "room": "El Morro"
+    },
+    {
+      "id": "usr_9deu2lry",
+      "name": "José Fabián Salazar",
+      "role": "operador",
       "room": "El Morro"
     }
   ]
