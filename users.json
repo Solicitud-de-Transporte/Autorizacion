@@ -1,18 +1,15 @@
 {
   "version": 1,
-  "updated": "2026-11-04T22:16:18.846Z",
+  "updated": "2026-11-04T00:00:00Z",
   "adminWhatsApp": "+584262840546",
   "adminId": "4M4N3C3R",
+  "rooms": ["El Morro", "Guaca", "La Esmeralda"],
   "users": [
     {
       "id": "4M4N3C3R",
       "name": "Emmanuel Manosalva",
-      "role": "admin"
-    },
-    {
-      "id": "usr_0oe2kbp3",
-      "name": "Nurbis Urbáez",
-      "role": "balance"
+      "role": "admin",
+      "room": "El Morro"
     }
   ]
 }
