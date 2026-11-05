@@ -1,25 +1,27 @@
 # Insopesca El Morro — Solicitud de Autorización de Transporte
 
-App web **local-first** para registrar solicitudes de autorización de transporte de carga. Funciona 100% offline, sincroniza entre dispositivos vía P2P y se instala como PWA. Sin servidores ni bases de datos externas.
+App web **local-first** para registrar solicitudes de autorización de transporte. 100% offline, sincroniza entre dispositivos vía P2P, instalable como PWA/APK. Sin servidores.
 
-**Autor:** Emmanuel Manosalva · **Versión:** 1.9.1
+**Autor:** Emmanuel Manosalva · **Versión:** 2.0.0
 
 ---
 
 ## 📋 Características
 
-- ✅ Formulario completo con autocompletado, validaciones y detección de CGT vencido.
-- ✅ Historial con búsqueda por placa / destino / chofer y filtro por fecha.
-- ✅ Roles: administrador, operador y Centro de Balance.
-- ✅ Autorización por WhatsApp: cada nuevo usuario envía su ID al admin.
-- ✅ Suspender / reactivar / eliminar usuarios desde el panel de admin.
-- ✅ Centro de Balance: aprobar / rechazar solicitudes, con observaciones.
-- ✅ Notificaciones locales cuando cambia el estado de una solicitud propia.
-- ✅ Sincronización P2P automática entre dispositivos conectados al mismo tiempo.
-- ✅ Respaldos automáticos en IndexedDB (últimos 5) con exportación manual.
-- ✅ Exportación a PDF y Excel del historial y de la auditoría.
-- ✅ Indicador de almacenamiento en vivo en el panel de admin.
-- ✅ Offline real tras la primera carga.
+- Formulario completo con autocompletado, validaciones y detección de CGT vencido.
+- Historial con búsqueda por placa / destino / chofer, filtro de fecha exacto y filtro por sala.
+- Roles: administrador, operador y Centro de Balance.
+- Autorización por WhatsApp.
+- Suspender / reactivar / eliminar usuarios desde el panel de admin.
+- **Multi-puerto con salas**: El Morro, Guaca, La Esmeralda (Admin puede crear más).
+- Centro de Balance con aprobación/rechazo y observaciones.
+- Notificaciones locales.
+- Sincronización P2P automática.
+- Respaldos automáticos (últimos 5) + exportación manual.
+- Exportación a PDF / Excel (historial y auditoría).
+- Indicador de almacenamiento en vivo.
+- **Instalable como APK** (standalone).
+- Offline real tras la primera carga.
 
 ---
 
@@ -35,6 +37,7 @@ App web **local-first** para registrar solicitudes de autorización de transport
 - 📄 config.js           → Constantes globales
 - 📄 db.js               → Capa IndexedDB
 - 📄 identity.js         → Registro, autorización, perfil
+- 📄 rooms.js      ← NUEVO
 - 📄 admin.js            → Panel de administración
 - 📄 balance.js          → Centro de Balance
 - 📄 backup.js           → Respaldos automáticos
