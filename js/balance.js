@@ -1,10 +1,6 @@
 /* ============================================================
    Centro de Balance - Insopesca El Morro
-   - Cambio de estado (aprobada / rechazada)
-   - Observaciones por solicitud
-   - Envío de solicitudes operador → balance
-   - Notificaciones locales al operador dueño
-   - Marcar como visto
+   v2.0.1: añade botón ⏳ Pendiente + reset de sent_to_balance
    ============================================================ */
 
 window.Balance = (function () {
@@ -14,12 +10,11 @@ window.Balance = (function () {
 
   const state = {
     mounted: false,
-    filter: 'todos',       // todos | pendiente | aprobada | rechazada
+    filter: 'todos',
     pendingChangeId: null,
     pendingChangeStatus: null
   };
 
-  /* ---------- helpers ---------- */
   function toast(msg) {
     if (typeof window.toast === 'function') window.toast(msg);
     else console.log('[balance]', msg);
@@ -35,7 +30,6 @@ window.Balance = (function () {
     catch (e) { return String(ts); }
   }
 
-  /* ---------- permisos ---------- */
   function canManage() {
     const u = Identity.getCurrentUser();
     if (!u) return false;
@@ -43,7 +37,6 @@ window.Balance = (function () {
   }
   function isBalanceOrAdmin() { return canManage(); }
 
-  /* ---------- notificaciones locales ---------- */
   async function ensureNotificationPermission() {
     if (!('Notification' in window)) return 'unsupported';
     if (Notification.permission === 'granted') return 'granted';
@@ -59,52 +52,34 @@ window.Balance = (function () {
     if (!record || !record.created_by || record.created_by.id !== user.id) return;
 
     const statusLabel = {
-      aprobada:  'APROBADA ✅',
-      rechazada: 'RECHAZADA ❌',
-      pendiente: 'PENDIENTE ⏳'
+      aprobada: 'APROBADA ✅', rechazada: 'RECHAZADA ❌', pendiente: 'PENDIENTE ⏳'
     }[record.status] || record.status;
 
     const title = 'Insopesca · Solicitud ' + (record.placa || '');
-    const body = 'Estado: ' + statusLabel +
-      (record.observations ? '\n' + record.observations : '');
+    const body = 'Estado: ' + statusLabel + (record.observations ? '\n' + record.observations : '');
 
-    /* Guardar en IndexedDB para mostrar en el centro de notificaciones */
     await DB.addStatusNotification({
-      target_user_id: user.id,
-      record_id: record.id,
-      plate: record.placa || '',
-      status: record.status,
-      message: body
+      target_user_id: user.id, record_id: record.id,
+      plate: record.placa || '', status: record.status, message: body
     });
 
-    /* Toast si la app está en foreground */
-    if (document.visibilityState === 'visible') {
-      toast('🔔 ' + title + ' — ' + statusLabel);
-    }
+    if (document.visibilityState === 'visible') toast('🔔 ' + title + ' — ' + statusLabel);
 
-    /* Notification API si está permitida y la app está en background */
     if ('Notification' in window && Notification.permission === 'granted') {
       if (document.visibilityState !== 'visible') {
         try {
           new Notification(title, {
-            body: body,
-            icon: CONFIG.NOTIF_ICON,
-            tag: 'insopesca-status-' + record.id,
-            renotify: true
+            body, icon: CONFIG.NOTIF_ICON,
+            tag: 'insopesca-status-' + record.id, renotify: true
           });
-        } catch (e) { /* algunos navegadores requieren SW */ }
+        } catch (e) {}
       }
     }
-
-    /* Refrescar campanita en el header */
-    if (typeof window.refreshNotificationBadge === 'function') {
-      window.refreshNotificationBadge();
-    }
+    if (typeof window.refreshNotificationBadge === 'function') window.refreshNotificationBadge();
   }
 
-  /* ---------- cambio de estado ---------- */
   async function changeStatus(recordId, newStatus, observation) {
-    if (!canManage()) { toast('⛔ Sin permiso para cambiar estado'); return false; }
+    if (!canManage()) { toast('⛔ Sin permiso'); return false; }
     const user = Identity.getCurrentUser();
     if (!user) return false;
 
@@ -122,6 +97,12 @@ window.Balance = (function () {
       device_id: deviceId
     });
 
+    /* Si se revierte a pendiente, permitir reenviar al Balance */
+    if (newStatus === CONFIG.STATUS.PENDIENTE) {
+      updated.sent_to_balance = false;
+      updated.sent_to_balance_at = 0;
+    }
+
     await DB.putRecord(updated);
     await DB.addAudit({
       action: 'status_change',
@@ -130,27 +111,22 @@ window.Balance = (function () {
       meta: { from: existing.status || 'pendiente', to: newStatus }
     });
 
-    /* Actualizar cache local */
     const idx = (window.state && window.state.records) ?
       window.state.records.findIndex(r => r.id === recordId) : -1;
     if (idx >= 0) window.state.records[idx] = updated;
 
-    /* Avisar a la UI */
     if (typeof window.updateBadges === 'function') window.updateBadges();
     if (typeof window.renderHistory === 'function') window.renderHistory();
     if (window.Admin && Admin.refreshDashboard) Admin.refreshDashboard();
 
-    /* Disparar sync */
     window.dispatchEvent(new CustomEvent('insopesca:record-changed', { detail: updated }));
-
-    /* Notificar al operador dueño si es este dispositivo */
     await notifyStatusChange(updated);
 
-    toast('✅ Estado actualizado a ' + newStatus);
+    const statusLabel = { pendiente: 'pendiente', aprobada: 'aprobada', rechazada: 'rechazada' }[newStatus] || newStatus;
+    toast('✅ Estado actualizado a ' + statusLabel);
     return true;
   }
 
-  /* ---------- envío al balance (operador) ---------- */
   async function sendToBalance(recordId) {
     const user = Identity.getCurrentUser();
     if (!user) return false;
@@ -158,8 +134,7 @@ window.Balance = (function () {
     if (!existing) return false;
     if (existing.sent_to_balance) { toast('📤 Ya está enviada al Balance'); return false; }
     if (existing.status === CONFIG.STATUS.APROBADA || existing.status === CONFIG.STATUS.RECHAZADA) {
-      toast('⚠️ Esta solicitud ya fue procesada por Balance');
-      return false;
+      toast('⚠️ Ya fue procesada por Balance'); return false;
     }
     const deviceId = await DB.getDeviceId();
     const updated = Object.assign({}, existing, {
@@ -184,7 +159,6 @@ window.Balance = (function () {
     return true;
   }
 
-  /* ---------- visto / no visto ---------- */
   async function hasUnseenStatus(record) {
     const user = Identity.getCurrentUser();
     if (!user) return false;
@@ -202,7 +176,6 @@ window.Balance = (function () {
     await DB.setStatusSeen(user.id, recordId, record.status_changed_at);
   }
 
-  /* ---------- vista ---------- */
   function statusBadgeHtml(status) {
     const map = {
       pendiente: { label: '⏳ Pendiente', cls: 'status-pending' },
@@ -238,14 +211,12 @@ window.Balance = (function () {
       const sentBadge = r.sent_to_balance ? '<span class="status-badge status-sent">📤 Enviada</span>' : '';
       const newBadge  = unseen ? '<span class="status-badge status-new">🔔 NUEVA</span>' : '';
       const obsHtml = r.observations
-        ? '<div class="balance-obs"><strong>📝 Balance:</strong> ' + esc(r.observations) + '</div>'
-        : '';
+        ? '<div class="balance-obs"><strong>📝 Balance:</strong> ' + esc(r.observations) + '</div>' : '';
       return '<div class="history-item balance-item">' +
         '<div class="history-header">' +
-          '<div>' +
-            '<div class="history-plate">🚗 ' + esc(r.placa) + '</div>' +
-            '<div style="font-size:.75rem;color:var(--text-light);margin-top:2px">' + esc(r.chofer) + '</div>' +
-          '</div>' +
+          '<div><div class="history-plate">🚗 ' + esc(r.placa) + '</div>' +
+            '<div style="font-size:.75rem;color:var(--text-light);margin-top:2px">' + esc(r.chofer) +
+            (r.room ? ' · ' + esc(r.room) : '') + '</div></div>' +
           '<div class="balance-badges">' + statusBadgeHtml(r.status) + sentBadge + newBadge + '</div>' +
         '</div>' +
         '<div class="history-meta">📍 <strong>' + esc(r.destino) + '</strong><br>' +
@@ -260,12 +231,12 @@ window.Balance = (function () {
           '<button class="hbtn hbtn-view" onclick="Balance.viewDetail(' + r.id + ')">👁️ Ver</button>' +
           '<button class="hbtn hbtn-approve" onclick="Balance.openChange(' + r.id + ',\'aprobada\')">✅ Aprobar</button>' +
           '<button class="hbtn hbtn-reject" onclick="Balance.openChange(' + r.id + ',\'rechazada\')">❌ Rechazar</button>' +
+          '<button class="hbtn hbtn-pending" onclick="Balance.openChange(' + r.id + ',\'pendiente\')">⏳ Pendiente</button>' +
         '</div></div>';
     }));
     list.innerHTML = items.join('');
   }
 
-  /* ---------- modal de cambio ---------- */
   async function openChange(recordId, newStatus) {
     if (!canManage()) { toast('⛔ Sin permiso'); return; }
     const record = await DB.getRecord(recordId);
@@ -273,14 +244,23 @@ window.Balance = (function () {
     state.pendingChangeId = recordId;
     state.pendingChangeStatus = newStatus;
 
+    const titles = {
+      aprobada: '✅ Aprobar solicitud',
+      rechazada: '❌ Rechazar solicitud',
+      pendiente: '⏳ Marcar como pendiente'
+    };
     const title = $('balanceChangeTitle');
-    if (title) title.textContent = (newStatus === 'aprobada' ? '✅ Aprobar solicitud' : '❌ Rechazar solicitud');
+    if (title) title.textContent = titles[newStatus] || 'Cambiar estado';
 
+    const statusLabel = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada' };
     const info = $('balanceChangeInfo');
     if (info) {
       info.innerHTML = '<strong>' + esc(record.placa) + '</strong> · ' + esc(record.destino) +
+        (record.room ? ' · 📍 ' + esc(record.room) : '') +
         '<br><span style="font-size:.78rem;color:var(--text-light)">Por: ' +
-        esc((record.created_by && record.created_by.name) || '—') + '</span>';
+        esc((record.created_by && record.created_by.name) || '—') +
+        ' · Estado actual: <strong>' +
+        esc(statusLabel[record.status] || record.status || 'Pendiente') + '</strong></span>';
     }
 
     const obs = $('balanceChangeObs');
@@ -302,18 +282,13 @@ window.Balance = (function () {
     const obs = $('balanceChangeObs');
     const observation = obs ? obs.value.trim() : '';
     const ok = await changeStatus(state.pendingChangeId, state.pendingChangeStatus, observation);
-    if (ok) {
-      closeChange();
-      await renderList();
-    }
+    if (ok) { closeChange(); await renderList(); }
   }
 
-  /* ---------- detalle rápido (reusa el modal global) ---------- */
   function viewDetail(id) {
     if (typeof window.viewRecord === 'function') window.viewRecord(id);
   }
 
-  /* ---------- filtros ---------- */
   function setFilter(f) {
     state.filter = f;
     document.querySelectorAll('.balance-filter-tab').forEach(function (t) {
@@ -322,7 +297,6 @@ window.Balance = (function () {
     renderList();
   }
 
-  /* ---------- mount ---------- */
   async function mount(containerId) {
     const container = $(containerId);
     if (!container) return;
@@ -336,6 +310,9 @@ window.Balance = (function () {
       state.mounted = true;
     }
     await ensureNotificationPermission();
+    if (window.Rooms) {
+      await Rooms.renderSwitcher('balanceRoomSwitcher', { allowCreate: false });
+    }
     await renderList();
   }
 
@@ -343,7 +320,12 @@ window.Balance = (function () {
     return '' +
 '<div class="admin-panel">' +
   '<h2 class="admin-title">⚖️ Centro de Balance</h2>' +
-  '<p class="admin-sub">Revisa, aprueba o rechaza las solicitudes enviadas desde los puertos.</p>' +
+  '<p class="admin-sub">Revisa, aprueba, rechaza o devuelve a pendiente las solicitudes.</p>' +
+  '<section class="admin-section">' +
+    '<h3>🌐 Sala de sincronización</h3>' +
+    '<div id="balanceRoomSwitcher"></div>' +
+    '<div class="hint" style="margin-top:8px">Puedes cambiar entre salas para ver las solicitudes de otros puertos.</div>' +
+  '</section>' +
   '<section class="admin-section">' +
     '<div class="balance-filter-tabs">' +
       '<button class="balance-filter-tab active" data-f="todos" onclick="Balance.setFilter(\'todos\')">Todas</button>' +
@@ -364,21 +346,11 @@ window.Balance = (function () {
     if (cancelBtn) cancelBtn.addEventListener('click', closeChange);
   }
 
-  /* ---------- API pública ---------- */
   return {
-    mount: mount,
-    renderList: renderList,
-    setFilter: setFilter,
-    openChange: openChange,
-    closeChange: closeChange,
-    confirmChange: confirmChange,
-    viewDetail: viewDetail,
-    changeStatus: changeStatus,
-    sendToBalance: sendToBalance,
-    notifyStatusChange: notifyStatusChange,
-    hasUnseenStatus: hasUnseenStatus,
-    markStatusSeen: markStatusSeen,
-    isBalanceOrAdmin: isBalanceOrAdmin,
-    ensureNotificationPermission: ensureNotificationPermission
+    mount, renderList, setFilter,
+    openChange, closeChange, confirmChange, viewDetail,
+    changeStatus, sendToBalance, notifyStatusChange,
+    hasUnseenStatus, markStatusSeen, isBalanceOrAdmin,
+    ensureNotificationPermission
   };
 })();
