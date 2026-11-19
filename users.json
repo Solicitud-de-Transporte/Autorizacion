@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-05T17:33:02.502Z",
+  "updated": "2026-11-19T15:09:40.428Z",
   "adminWhatsApp": "+584262840546",
   "adminId": "4M4N3C3R",
   "rooms": [
@@ -19,6 +19,12 @@
       "id": "usr_9deu2lry",
       "name": "José Fabián Salazar",
       "role": "operador",
+      "room": "El Morro"
+    },
+    {
+      "id": "usr_6z73gpcj",
+      "name": "Weimar Revilla",
+      "role": "balance",
       "room": "El Morro"
     }
   ]
